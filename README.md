@@ -82,4 +82,6 @@ Type your callsign into http://pskreporter.info and click the `find` button, enj
 
 
 ---
+This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
+
 73 de BD7MQB, Michael
