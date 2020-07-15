@@ -79,3 +79,7 @@ BTW i use tmux to keep `ft8.py` running when console closed.
 
 ## 4. Track your spots
 Type your callsign into http://pskreporter.info and click the `find` button, enjoy.
+
+
+---
+73 de BD7MQB, Michael
