@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 ## -*- python -*-
+#
+# Copyright(c) 2020 BD7MQB Michael Choi <bd7mqb@qq.com>
+# This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
+#
 
 PATH = './tmp/records/'
 
