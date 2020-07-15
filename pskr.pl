@@ -12,10 +12,11 @@
 # cache call signs up to 5 minutes before resending (see $MINTIME)
 
 # v0.2.7 - 2018/11/16 - K1RA@K1RA.us
+# v0.2.8 - 2020/07/10 - BD7MQB Michael Choi, add <LOGFILE> args
 
 # Start by using following command line
-# ./pskr.pl YOURCALL YOURGRID
-# ./pskr.pl WX1YZ AB12DE
+# ./pskr.pl YOURCALL YOURGRID LOGFILE
+# ./pskr.pl WX1YZ AB12DE LOGFILE
 
 use strict;
 use warnings;
@@ -47,6 +48,7 @@ if( ! defined( $ARGV[1]) || ( ! ( $ARGV[1] =~ /\w\w\d\d\w\w/)) ) {
 } 
 my $mygrid = uc( $ARGV[1]);
 
+# logfile to tail from
 if( ! defined( $ARGV[2]) ) { 
   die "Enter a valid file path of decode-ft8.log\n";
 } 
