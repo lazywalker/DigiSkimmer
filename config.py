@@ -8,36 +8,44 @@
 PATH = './tmp/records/'
 
 STATIONS = {
-    # 'szsdr': {
-    #     'server_host': 'radiopi.local', 
-    #     'server_port': 8073,
-    #     'password': 'passwor0d',
-    #     'tlimit_password': 'passwor0d',
-    #     'callsign': 'BD7MQB',
-    #     'grid': 'OL72an',
-    # },
+    'szsdr': {                                      ## name of kiwisdr station
+        'server_host': 'szsdr.ddns.net',            ## url of your kiwisdr station
+        'server_port': 8073,                        ## port of kiwi
+        'password': 'passwor0d',                    ## password if needed
+        'tlimit_password': 'passwor0d',             ## password to bypass time limited, if needed
+        'callsign': 'BD7MQB',                       ## your callsign
+        'grid': 'OL72an',                           ## your grid
+    },
     
-    # 'czsdr': {
-    #     'server_host': 'cz.kiwisdr.go1982.com', 
-    #     'server_port': 8073,
-    #     'password': 'passwor0d',
-    #     'tlimit_password': 'passwor0d',
-    #     'callsign': 'BD7MQB-2',
-    #     'grid': 'OM88co',
-    # },
-    
-    'cdsdr': {
-        'server_host': 'cdkiwisdr.ddns.net', 
+    'czsdr': {
+        'server_host': 'cz.kiwisdr.go1982.com', 
         'server_port': 8073,
         'password': 'passwor0d',
         'tlimit_password': 'passwor0d',
-        'callsign': 'BD7MQB-3',
-        'grid': 'OM10wq',
+        'callsign': 'BD7MQB-2',
+        'grid': 'OM88co',
+    },
+    
+    'cdsdr': {                                      ## name of kiwisdr station
+        'server_host': 'cdkiwisdr.ddns.net',        ## url of your kiwisdr station
+        'server_port': 8073,                        ## port of kiwi
+        'password': 'passwor0d',                    ## password if needed
+        'tlimit_password': 'passwor0d',             ## password to bypass time limited, if needed
+        'callsign': 'BD7MQB-3',                     ## your callsign
+        'grid': 'OM10wq',                           ## your grid
     },
 }
 
 SCHEDULES = {
     '*': {'cdsdr': [20]},
+
+    # '21:00-08:00': {'czsdr': [20, 30, 40, 60, 80, 160]},
+    # '08:00-14:30': {'czsdr': [10, 12, 15, 17, 20, 30]},
+    # '14:30-21:00': {'czsdr': [10, 15, 17, 20, 30, 40]},
+
+
+    ## for test
+    # '*': {'cdsdr': [20]},
     # '*': {'szsdr': [20,30], 'czsdr': [20,30]},
     # '14:00-17:08': {'szsdr': [40, 20], 'czsdr': [40]},
     # '20:00-20:51': {'szsdr': [20, 60]},
@@ -46,4 +54,5 @@ SCHEDULES = {
     # '21:00-08:00': {'szsdr': [10, 12, 15, 17, 20, 30, 40, 60, 80, 160], 'czsdr': [20, 30, 40, 60, 80, 160]},
     # '08:00-14:30': {'szsdr': [10, 12, 15, 17, 20, 30, 40, 60, 80, 160], 'czsdr': [10, 12, 15, 17, 20, 30]},
     # '14:30-21:00': {'szsdr': [10, 12, 15, 17, 20, 30, 40, 60, 80, 160], 'czsdr': [10, 15, 17, 20, 30, 40]},
+    # end for test
 }
