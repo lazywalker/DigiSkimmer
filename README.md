@@ -44,6 +44,13 @@ cd DigiSkimmer
 
 ## 2. Configuration
 You should modify `config.py`
+
+```bash
+cp config.py.template config.py
+```
+`STATIONS` is what kiwistation for, `SCHEDULES` is for the station/band hop, avaliable bands are `10, 12, 15, 17, 20, 30, 40, 60, 80 and 160` meters
+
+
 ```bash
 STATIONS = {
     'szsdr': {                                      ## name of kiwisdr station
