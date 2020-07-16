@@ -38,7 +38,7 @@ pip install numpy
 Pull the code 
 ```bash
 cd ~
-git pull https://github.com/lazywalker/DigiSkimmer.git
+git clone https://github.com/lazywalker/DigiSkimmer.git
 cd DigiSkimmer
 ```
 
