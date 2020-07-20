@@ -14,14 +14,7 @@ try:
 except ImportError:
     ## otherwise linear interpolation is used
     HAS_RESAMPLER = False
-    
-def _write_wav_header(fp, filesize, samplerate, num_channels):
-    fp.write(struct.pack('<4sI4s', b'RIFF', filesize - 8, b'WAVE'))
-    bits_per_sample = 16
-    byte_rate       = samplerate * num_channels * bits_per_sample // 8
-    block_align     = num_channels * bits_per_sample // 8
-    fp.write(struct.pack('<4sIHHIIHH', b'fmt ', 16, 1, num_channels, int(samplerate+0.5), byte_rate, block_align, bits_per_sample))
-    fp.write(struct.pack('<4sI', b'data', filesize - 12 - 8 - 16 - 8))
+
 
 class FT8SoundRecorder(KiwiSDRStream):
     def __init__(self, path, options):
@@ -107,7 +100,15 @@ class FT8SoundRecorder(KiwiSDRStream):
         if self._options.dir is not None:
             filename = '%s/%s' % (self._options.dir, filename)
         return filename
-
+            
+    def _write_wav_header(self, fp, filesize, samplerate, num_channels):
+        fp.write(struct.pack('<4sI4s', b'RIFF', filesize - 8, b'WAVE'))
+        bits_per_sample = 16
+        byte_rate       = samplerate * num_channels * bits_per_sample // 8
+        block_align     = num_channels * bits_per_sample // 8
+        fp.write(struct.pack('<4sIHHIIHH', b'fmt ', 16, 1, num_channels, int(samplerate+0.5), byte_rate, block_align, bits_per_sample))
+        fp.write(struct.pack('<4sI', b'data', filesize - 12 - 8 - 16 - 8))
+        
     def _update_wav_header(self):
         with open(self._get_output_filename(), 'r+b') as fp:
             fp.seek(0, os.SEEK_END)
@@ -116,7 +117,7 @@ class FT8SoundRecorder(KiwiSDRStream):
 
             # fp.tell() sometimes returns zero. _write_wav_header writes filesize - 8
             if filesize >= 8:
-                _write_wav_header(fp, filesize, int(self._output_sample_rate), self._num_channels)
+                self._write_wav_header(fp, filesize, int(self._output_sample_rate), self._num_channels)
 
     def _write_samples(self, samples, *args):
         """Output to a file on the disk."""
@@ -127,7 +128,7 @@ class FT8SoundRecorder(KiwiSDRStream):
         if self._start_ts is None or (self._options.filename == '' and dt_reached):
             if self._start_ts is not None:
                 # Call jt9 to process decoding
-                cmd = "timeout 30 nice jt9 -8 -e {dir} -a {dir} -t {dir} {filename} | awk -v date={date} 'gsub(\"000000\", date)' | awk -v freq={freq} 'gsub(\"~\",freq)' >> {output} && echo \"Decoding Band {band}m\" >> {output} &&  rm {filename}".format(
+                cmd = "timeout 30 nice jt9 -8 -d 3 -e {dir} -a {dir} -t {dir} {filename} | awk -v date={date} 'gsub(\"000000\", date)' | awk -v freq={freq} 'gsub(\"~\",freq)' >> {output} && echo \"Decoding Band {band}m\" >> {output} &&  rm {filename}".format(
                     dir = self._options.dir,
                     filename = self._get_output_filename(),
                     date = datetime.datetime.now().strftime('%H%M%S'),
@@ -142,7 +143,7 @@ class FT8SoundRecorder(KiwiSDRStream):
             self._start_time = time.time()
             # Write a static WAV header
             with open(self._get_output_filename(), 'wb') as fp:
-                _write_wav_header(fp, 100, int(self._output_sample_rate), self._num_channels)
+                self._write_wav_header(fp, 100, int(self._output_sample_rate), self._num_channels)
         with open(self._get_output_filename(), 'ab') as fp:
             # TODO: something better than that
             samples.tofile(fp)
