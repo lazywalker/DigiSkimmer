@@ -13,13 +13,14 @@ from optparse import OptionParser
 from optparse import OptionGroup
 
 sys.path.append('./lib')
-from kiwi import FT8SoundRecorder, Option, KiwiWorker
+from kiwi import KiwiWorker
+from digiskr import SoundRecorder, Option
 import timespan
 import config
 
 VERSION = '0.1'
 KIWI_USER = "ft8-monitor_%s" % VERSION
-FT8_BANDS = {160:1840, 80:3573, 60:5357, 40:7074, 30:10136, 20:14074, 17:18100, 15:21074, 12:24915, 10:28074}
+FT8_BANDS = {160:1840, 80:3573, 60:5357, 40:7074, 30:10136, 20:14074, 17:18100, 15:21074, 12:24915, 10:28074, 6:50313}
 
 
 def initKiwiStation(station, station_name):
@@ -41,7 +42,7 @@ def newKiwiWorker(o, band, idx):
     else:
         os.popen("rm -f %s/*.wav" % options.dir)
 
-    worker = KiwiWorker(args=(FT8SoundRecorder(config.PATH, options), options))
+    worker = KiwiWorker(args=(SoundRecorder(config.PATH, options), options))
     worker.setName('%s-%d' %(options.station, band))
     
     return worker
