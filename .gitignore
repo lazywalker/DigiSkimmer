@@ -5,4 +5,5 @@ __pycache__
 log*
 *~
 tmp/
-config.py
+/config.py
+/*.json

@@ -1,10 +1,7 @@
-#
-# Copyright(c) 2020 BD7MQB Michael Choi <bd7mqb@qq.com>
-# This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
-#
-
-import logging, os, time, datetime, sys, struct
+import logging, os, time, sys, struct
 import numpy as np
+from datetime import datetime
+
 from kiwi.client import KiwiSDRStream
 
 HAS_RESAMPLER = True
@@ -15,6 +12,8 @@ except ImportError:
     ## otherwise linear interpolation is used
     HAS_RESAMPLER = False
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class SoundRecorder(KiwiSDRStream):
     def __init__(self, path, options):
@@ -22,7 +21,7 @@ class SoundRecorder(KiwiSDRStream):
         self._options = options
         self._type = 'SND'
         freq = options.frequency
-        #logging.info("%s:%s freq=%d" % (options.server_host, options.server_port, freq))
+        #logger.info("%s:%s freq=%d" % (options.server_host, options.server_port, freq))
         self._freq = freq
         self._start_ts = None
         self._start_time = None
@@ -62,9 +61,9 @@ class SoundRecorder(KiwiSDRStream):
         if self._options.resample > 0:
             self._output_sample_rate = self._options.resample
             self._ratio = float(self._output_sample_rate)/self._sample_rate
-            logging.info('resampling from %g to %d Hz (ratio=%f)' % (self._sample_rate, self._options.resample, self._ratio))
+            logger.info('resampling from %g to %d Hz (ratio=%f)' % (self._sample_rate, self._options.resample, self._ratio))
             if not HAS_RESAMPLER:
-                logging.info("libsamplerate not available: linear interpolation is used for low-quality resampling. "
+                logger.info("libsamplerate not available: linear interpolation is used for low-quality resampling. "
                              "(pip install samplerate)")
 
     def _process_audio_samples(self, seq, samples, rssi):
@@ -131,12 +130,12 @@ class SoundRecorder(KiwiSDRStream):
                 cmd = "timeout 30 nice jt9 -8 -d 3 -e {dir} -a {dir} -t {dir} {filename} | awk -v date={date} 'gsub(\"000000\", date)' | awk -v freq={freq} 'gsub(\"~\",freq)' >> {output} && echo \"Decoding Band {band}m\" >> {output} &&  rm {filename}".format(
                     dir = self._options.dir,
                     filename = self._get_output_filename(),
-                    date = datetime.datetime.now().strftime('%H%M%S'),
+                    date = datetime.now().strftime('%H%M%S'),
                     band = self._options.band,
                     freq = self._freq,
                     output = os.path.join(self._path, self._options.station, "decode-ft8.log")
                 )
-                logging.info("decoding band %dm", self._options.band)
+                logger.info("decoding band %dm", self._options.band)
                 os.popen(cmd)
             
             self._start_ts = now

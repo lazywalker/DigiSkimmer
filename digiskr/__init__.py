@@ -1,4 +1,5 @@
 #!/usr/bin/env python
 ## -*- python -*-
 
-from .soundrecorder import SoundRecorder, Option
+from .audio import SoundRecorder, Option
+from .config import Config

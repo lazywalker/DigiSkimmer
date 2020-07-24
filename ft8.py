@@ -5,23 +5,22 @@
 # This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
 #
 
-import array, logging, os, sys, time, datetime, copy, threading
+import logging, os, sys, time, threading
 import gc
+from datetime import datetime
 from copy import copy
 from traceback import print_exc
-from optparse import OptionParser
-from optparse import OptionGroup
 
 sys.path.append('./lib')
 from kiwi import KiwiWorker
-from digiskr import SoundRecorder, Option
+from digiskr import SoundRecorder, Option, Config
 import timespan
-import config
 
-VERSION = '0.1'
-KIWI_USER = "ft8-monitor_%s" % VERSION
+VERSION = '0.2'
+KIWI_USER = "digiskr_%s" % VERSION
 FT8_BANDS = {160:1840, 80:3573, 60:5357, 40:7074, 30:10136, 20:14074, 17:18100, 15:21074, 12:24915, 10:28074, 6:50313}
 
+conf = Config.get()
 
 def initKiwiStation(station, station_name):
     options = Option(**station)
@@ -36,13 +35,13 @@ def newKiwiWorker(o, band, idx):
     options.idx = idx
     options.timestamp = int(time.time() + os.getpid() + idx) & 0xffffffff
     options.frequency = FT8_BANDS[options.band]
-    options.dir = os.path.join(config.PATH, options.station, str(options.band))
+    options.dir = os.path.join(conf['PATH'], options.station, str(options.band))
     if not os.path.isdir(options.dir):
         os.makedirs(options.dir, exist_ok=True)
     else:
         os.popen("rm -f %s/*.wav" % options.dir)
 
-    worker = KiwiWorker(args=(SoundRecorder(config.PATH, options), options))
+    worker = KiwiWorker(args=(SoundRecorder(conf['PATH'], options), options))
     worker.setName('%s-%d' %(options.station, band))
     
     return worker
@@ -59,15 +58,15 @@ def remove_thread(snd, r):
 
 def match_schedule(schedules):
     for (ts, schedule) in schedules.items():
-        if timespan.match(ts, datetime.datetime.now()):
+        if timespan.match(ts, datetime.now()):
             return schedule
 
     return None
 
 def pskr(station, callsign, grid):
-    logfile = os.path.join(config.PATH, station, 'decode-ft8.log')
+    logfile = os.path.join(conf['PATH'], station, 'decode-ft8.log')
     # make sure that logfile is available
-    os.makedirs(os.path.join(config.PATH, station), exist_ok=True)
+    os.makedirs(os.path.join(conf['PATH'], station), exist_ok=True)
     os.popen('touch %s' % logfile)
     cmd = './pskr.pl %s %s %s' %(callsign, grid, logfile)
     os.popen(cmd)
@@ -80,11 +79,11 @@ def main():
 
     sr_tasks = []
     idx = 0
-    schedule = match_schedule(config.SCHEDULES)
+    schedule = match_schedule(conf['SCHEDULES'])
     if schedule is not None:
         logging.info('current schedule is: %s', schedule)
         for (st, bands) in schedule.items():
-            options = initKiwiStation(config.STATIONS[st], st)
+            options = initKiwiStation(conf['STATIONS'][st], st)
             for band in bands:
                 sr_tasks.append(newKiwiWorker(options, band, idx))
                 idx += 1
@@ -94,7 +93,7 @@ def main():
             logging.warning('I\'m out')
             exit()
         else:
-            for k,v in config.STATIONS.items():
+            for k,v in conf['STATIONS'].items():
                 pskr(k, v['callsign'], v['grid'])
             for i,r in enumerate(sr_tasks):
                 r.start()
@@ -103,7 +102,7 @@ def main():
         while run_event.is_set():
             time.sleep(1)
 
-            schedule = match_schedule(config.SCHEDULES)
+            schedule = match_schedule(conf['SCHEDULES'])
             if schedule is not None:
                 logging.debug('current schedule is: %s', schedule)
                 ## remove out-of-date tasks
@@ -129,7 +128,7 @@ def main():
                                 exsit_task = True
                                 break
                         if not exsit_task:
-                            options = initKiwiStation(config.STATIONS[st], st)
+                            options = initKiwiStation(conf['STATIONS'][st], st)
                             task = newKiwiWorker(options, band, len(sr_tasks)+1)
                             task.start()
                             sr_tasks.append(task)
@@ -140,6 +139,7 @@ def main():
 
 
     except KeyboardInterrupt:
+        logging.info("KeyboardInterrupt: exiting...")
         run_event.clear()
         join_threads(sr_tasks)
         print("KeyboardInterrupt: threads successfully closed")
