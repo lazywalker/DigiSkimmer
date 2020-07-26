@@ -1,11 +1,12 @@
-#!/usr/bin/env python
-## -*- python -*-
-#
-# Copyright(c) 2020 BD7MQB Michael Choi <bd7mqb@qq.com>
-# This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
-#
 
-PATH = './tmp/records/'
+PATH = './tmp/records/'                             ## tmp directory to put wave files and etc.
+
+WSJTX = {
+    'decoding_depth_global': 3,                     ## global settings
+    'decoding_depth_modes': {                       ## mode-specific setting: ft8/jt65/jt9/ft4
+        'ft8': 3
+    }
+}
 
 STATIONS = {
     'szsdr': {                                      ## name of kiwisdr station

@@ -89,6 +89,7 @@ Type your callsign into http://pskreporter.info and click the `find` button, enj
 
 
 ---
-This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
+- This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
+- Part of pskreporter/wsjt codes were taken from @jketterl/openwebrx, TNX
 
 73 de BD7MQB, Michael
