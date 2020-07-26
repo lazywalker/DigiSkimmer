@@ -5,6 +5,7 @@
 # This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
 #
 
+from digiskr import config
 from digiskr.pskreporter import PskReporter
 from digiskr.audio import DecoderQueue
 from digiskr.wsjt import FT8Profile, WsjtParser
@@ -17,10 +18,6 @@ sys.path.append('./lib')
 from kiwi import KiwiWorker
 from digiskr import SoundRecorder, Option, Config
 import timespan
-
-VERSION = '0.2'
-KIWI_USER = "digiskr_%s" % VERSION
-FT8_BANDS = {160:1840, 80:3573, 60:5357, 40:7074, 30:10136, 20:14074, 17:18100, 15:21074, 12:24915, 10:28074, 6:50313}
 
 conf = Config.get()
 _run_event = threading.Event()
@@ -66,7 +63,7 @@ def setup_logger():
 def setup_kiwistation(station, station_name):
     options = Option(**station)
     options.station = station_name
-    options.user = KIWI_USER
+    options.user = config.KIWI_USER
     return options
 
 def new_kiwiworker(o, band, idx):
@@ -74,7 +71,7 @@ def new_kiwiworker(o, band, idx):
     options.band = band
     options.idx = idx
     options.timestamp = int(time.time() + os.getpid() + idx) & 0xffffffff
-    options.frequency = FT8_BANDS[options.band]
+    options.frequency = config.FT8_BANDS[options.band]
     options.dir = os.path.join(conf['PATH'], options.station, str(options.band))
     if not os.path.isdir(options.dir):
         os.makedirs(options.dir, exist_ok=True)

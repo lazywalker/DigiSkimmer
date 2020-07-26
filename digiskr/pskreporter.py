@@ -1,3 +1,4 @@
+from digiskr import config
 import logging
 import threading
 import time
@@ -156,7 +157,7 @@ class Uploader(object):
     def getReceiverInformation(self):
         callsign = self.callsign
         locator = self.grid
-        decodingSoftware = "DigiSkimmer 0.1"
+        decodingSoftware = config.DECODING_SOFTWARE
         body = [b for s in [callsign, locator, decodingSoftware] for b in self.encodeString(s)]
         body = self.pad(body, 4)
         body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
