@@ -25,7 +25,6 @@ class QueueJob(object):
         self.freq = freq
 
     def run(self):
-        # logging.info("decoding %s" % self.file)
         self.decoder.decode(self)
 
     def unlink(self):
@@ -38,10 +37,10 @@ class QueueJob(object):
 
 
 class QueueWorker(threading.Thread):
-    def __init__(self, queue):
+    def __init__(self, queue, name):
         self.queue = queue
         self.run_event = threading.Event()
-        super().__init__()
+        super().__init__(name = name)
 
     def start(self):
         logging.info('QueueWorker %s started' % self.getName())
@@ -67,7 +66,7 @@ class QueueWorker(threading.Thread):
             
     def stop(self):
         self.run_event.clear()
-        logging.debug("QueueWorker %s stop." % self.getName())
+        logging.info("QueueWorker %s stop." % self.getName())
 
 
 class DecoderQueue(Queue):
@@ -78,12 +77,12 @@ class DecoderQueue(Queue):
     def instance():
         with DecoderQueue.creationLock:
             if DecoderQueue.sharedInstance is None:
-                DecoderQueue.sharedInstance = DecoderQueue(10, 3)
+                DecoderQueue.sharedInstance = DecoderQueue(10, 5)
         return DecoderQueue.sharedInstance
 
     def __init__(self, maxsize, workers):
         super().__init__(maxsize)
-        self.workers = [self.newWorker() for _ in range(0, workers)]
+        self.workers = [self.newWorker(i) for i in range(0, workers)]
 
     def put(self, item, **kwars):
         try:
@@ -95,8 +94,8 @@ class DecoderQueue(Queue):
         out = super(DecoderQueue, self).get(**kwargs)
         return out
 
-    def newWorker(self):
-        worker = QueueWorker(self)
+    def newWorker(self, i):
+        worker = QueueWorker(self, "QW-%d" % i)
         worker.start()
         return worker
 
@@ -273,7 +272,7 @@ class SoundRecorder(KiwiSDRStream):
                     logging.debug("put a new job into queue %s", filename)
                     DecoderQueue.instance().put(job)
                 except Full:
-                    logging.warning("decoding queue overflow; dropping one file")
+                    logging.exception("decoding queue overflow; dropping one file")
                     job.unlink()
 
             self._start_ts = now
