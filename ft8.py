@@ -5,11 +5,13 @@
 # This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
 #
 
+from digiskr.pskreporter import PskReporter
+from digiskr.audio import DecoderQueue
+from digiskr.wsjt import FT8Profile, WsjtParser
 import logging, os, sys, time, threading
 import gc
 from datetime import datetime
 from copy import copy
-from traceback import print_exc
 
 sys.path.append('./lib')
 from kiwi import KiwiWorker
@@ -21,15 +23,53 @@ KIWI_USER = "digiskr_%s" % VERSION
 FT8_BANDS = {160:1840, 80:3573, 60:5357, 40:7074, 30:10136, 20:14074, 17:18100, 15:21074, 12:24915, 10:28074, 6:50313}
 
 conf = Config.get()
+_run_event = threading.Event()
+_run_event.set()
+threading.currentThread().setName('main')
+_sr_tasks = []
 
-def initKiwiStation(station, station_name):
+def setup_logger():
+    try:
+        # if colorlog installed (pip install colorlog)
+        from colorlog import ColoredFormatter
+        import logging.config
+
+        logconf = {
+            'version': 1,
+            'formatters': {
+                'colored': {
+                    '()': 'colorlog.ColoredFormatter',
+                    'format':
+                        # "%(log_color)s%(levelname)s:%(name)s:%(message)s:dict",
+                        "%(asctime)-15s %(log_color)s%(levelname)-5s %(process)5d [%(threadName)s] %(message)s"
+                }
+            },
+            'handlers': {
+                'stream': {
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'colored',
+                    'level': 'DEBUG'
+                },
+            },
+            'loggers': {
+                '': {
+                    'handlers': ['stream'],
+                    'level': 'DEBUG',
+                },
+            },
+        }
+        logging.config.dictConfig(logconf)
+    except ImportError:
+        FORMAT = '%(asctime)-15s pid %(process)5d [%(threadName)s] %(message)s'
+        logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+
+def setup_kiwistation(station, station_name):
     options = Option(**station)
-    options.dt = 15 ## 15 seconds per span
     options.station = station_name
     options.user = KIWI_USER
     return options
 
-def newKiwiWorker(o, band, idx):
+def new_kiwiworker(o, band, idx):
     options = copy(o)
     options.band = band
     options.idx = idx
@@ -41,13 +81,18 @@ def newKiwiWorker(o, band, idx):
     else:
         os.popen("rm -f %s/*.wav" % options.dir)
 
-    worker = KiwiWorker(args=(SoundRecorder(conf['PATH'], options), options))
-    worker.setName('%s-%d' %(options.station, band))
+    worker = KiwiWorker(
+            target=SoundRecorder(conf['PATH'], options, FT8Profile(), WsjtParser(options.callsign, options.grid)),
+            name = "%s-%d" %(options.station, band)
+        )
     
     return worker
 
-def join_threads(snd):
-    [r.stop() for r in snd]
+def cleanup():
+    _run_event.clear()
+    PskReporter.stop()
+    [w.stop() for w in DecoderQueue.instance().workers]
+    [r.stop() for r in _sr_tasks]
     [t.join() for t in threading.enumerate() if t is not threading.currentThread()]
 
 def remove_thread(snd, r):
@@ -63,50 +108,34 @@ def match_schedule(schedules):
 
     return None
 
-def pskr(station, callsign, grid):
-    logfile = os.path.join(conf['PATH'], station, 'decode-ft8.log')
-    # make sure that logfile is available
-    os.makedirs(os.path.join(conf['PATH'], station), exist_ok=True)
-    os.popen('touch %s' % logfile)
-    cmd = './pskr.pl %s %s %s' %(callsign, grid, logfile)
-    os.popen(cmd)
-    logging.info('starting pskr daemon: %s' %cmd)
-
 def main():
-    run_event = threading.Event()
-    run_event.set()
-    threading.currentThread().setName('main')
-
-    sr_tasks = []
     idx = 0
     schedule = match_schedule(conf['SCHEDULES'])
     if schedule is not None:
         logging.info('current schedule is: %s', schedule)
         for (st, bands) in schedule.items():
-            options = initKiwiStation(conf['STATIONS'][st], st)
+            options = setup_kiwistation(conf['STATIONS'][st], st)
             for band in bands:
-                sr_tasks.append(newKiwiWorker(options, band, idx))
+                _sr_tasks.append(new_kiwiworker(options, band, idx))
                 idx += 1
     try:
-        if len(sr_tasks) == 0:
+        if len(_sr_tasks) == 0:
             logging.warning('No tasks in queue.')
             logging.warning('I\'m out')
-            exit()
+            exit(0)
         else:
-            for k,v in conf['STATIONS'].items():
-                pskr(k, v['callsign'], v['grid'])
-            for i,r in enumerate(sr_tasks):
+            for i,r in enumerate(_sr_tasks):
                 r.start()
 
         # keeper
-        while run_event.is_set():
+        while _run_event.is_set():
             time.sleep(1)
 
             schedule = match_schedule(conf['SCHEDULES'])
             if schedule is not None:
-                logging.debug('current schedule is: %s', schedule)
+                # logging.debug('current schedule is: %s', schedule)
                 ## remove out-of-date tasks
-                for r in sr_tasks:
+                for r in _sr_tasks:
                     bands = schedule.get(r._options.station)
                     keep_it = False
                     if bands is not None:
@@ -115,47 +144,40 @@ def main():
                                 keep_it = True
                                 break
                     else:
-                        remove_thread(sr_tasks, r)
+                        remove_thread(_sr_tasks, r)
                     if not keep_it:
-                        remove_thread(sr_tasks, r)
+                        remove_thread(_sr_tasks, r)
                 
                 # add new tasks
                 for (st, bands) in schedule.items():
                     for band in bands:
                         exsit_task = False
-                        for r in sr_tasks:
+                        for r in _sr_tasks:
                             if r.getName() == '%s-%d' %(st, band):
                                 exsit_task = True
                                 break
                         if not exsit_task:
-                            options = initKiwiStation(conf['STATIONS'][st], st)
-                            task = newKiwiWorker(options, band, len(sr_tasks)+1)
+                            options = setup_kiwistation(conf['STATIONS'][st], st)
+                            task = new_kiwiworker(options, band, len(_sr_tasks)+1)
                             task.start()
-                            sr_tasks.append(task)
+                            _sr_tasks.append(task)
             else: #no tasks available
-                [remove_thread(sr_tasks, r) for r in sr_tasks]
+                [remove_thread(_sr_tasks, r) for r in _sr_tasks]
                 logging.warning('There is no tasks')
                 logging.warning('I\'m waiting...')
 
 
     except KeyboardInterrupt:
-        logging.info("KeyboardInterrupt: exiting...")
-        run_event.clear()
-        join_threads(sr_tasks)
-        print("KeyboardInterrupt: threads successfully closed")
+        logging.warning("KeyboardInterrupt: exiting...")
+        cleanup()
+        logging.info("KeyboardInterrupt: threads successfully closed")
     except Exception:
-        print_exc()
-        run_event.clear()
-        join_threads(sr_tasks)
-        print("Exception: threads successfully closed")
+        cleanup()
+        logging.exception("Exception: threads successfully closed")
 
     logging.debug('gc %s' % gc.garbage)
 
 if __name__ == '__main__':
-    #import faulthandler
-    #faulthandler.enable()
-    FORMAT = '%(asctime)-15s pid %(process)5d [%(threadName)s] %(message)s'
-    logging.basicConfig(level=logging.INFO, format=FORMAT)
-    # gc.set_debug(gc.DEBUG_SAVEALL | gc.DEBUG_LEAK | gc.DEBUG_UNCOLLECTABLE)
+    setup_logger()
     main()
 # EOF

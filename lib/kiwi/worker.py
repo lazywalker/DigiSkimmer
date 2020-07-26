@@ -7,9 +7,10 @@ from traceback import print_exc
 from .client import KiwiTooBusyError, KiwiTimeLimitError, KiwiServerTerminatedConnection
 
 class KiwiWorker(threading.Thread):
-    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None):
-        super(KiwiWorker, self).__init__(group=group, target=target, name=name)
-        self._recorder, self._options = args
+    def __init__(self, target=None, name=None):
+        super(KiwiWorker, self).__init__(target=target, name=name)
+        self._recorder = target
+        self._options = self._recorder._options
         self._recorder._reader = True
         self._event = threading.Event()
         self._run_event = threading.Event()

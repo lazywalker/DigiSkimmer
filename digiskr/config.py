@@ -3,9 +3,6 @@ import os
 import logging
 import json
 
-logger = logging.getLogger(__name__)
-
-
 class ConfigNotFoundException(Exception):
     pass
 
@@ -51,7 +48,7 @@ class Config:
                 elif file.endswith(".json"):
                     return Config._loadJsonFile(file)
                 else:
-                    logger.warning("unsupported file type: %s", file)
+                    logging.warning("unsupported file type: %s", file)
             except FileNotFoundError:
                 pass
         raise ConfigNotFoundException(
