@@ -37,7 +37,6 @@ def setup_logger():
                 'colored': {
                     '()': 'colorlog.ColoredFormatter',
                     'format':
-                        # "%(log_color)s%(levelname)s:%(name)s:%(message)s:dict",
                         "%(asctime)-15s %(log_color)s%(levelname)-5s %(process)5d [%(threadName)s] %(message)s"
                 }
             },
@@ -56,9 +55,19 @@ def setup_logger():
             },
         }
         logging.config.dictConfig(logconf)
+        logging
     except ImportError:
-        FORMAT = '%(asctime)-15s pid %(process)5d [%(threadName)s] %(message)s'
+        FORMAT = "%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"
         logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+
+    # log to file
+    filehandler = logging.handlers.TimedRotatingFileHandler("log/ft8.log", when='d', interval=1, backupCount=7)
+
+    filehandler.setLevel(logging.DEBUG)
+    filehandler.suffix = "%Y-%m-%d_%H-%M-%S.log"
+    filehandler.setFormatter(logging.Formatter("%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"))
+    logging.getLogger('').addHandler(filehandler)
+
 
 def setup_kiwistation(station, station_name):
     options = Option(**station)

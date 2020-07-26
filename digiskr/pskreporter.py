@@ -86,7 +86,7 @@ class Uploader(object):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def upload(self, spots):
-        logging.info("uploading %i spots by %s on %s", len(spots), self.callsign, self.grid)
+        logging.warning("uploading %i spots by %s on %s", len(spots), self.callsign, self.grid)
         for packet in self.getPackets(spots):
             self.socket.sendto(packet, ("report.pskreporter.info", 4739))
 

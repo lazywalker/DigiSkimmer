@@ -77,7 +77,14 @@ class DecoderQueue(Queue):
     def instance():
         with DecoderQueue.creationLock:
             if DecoderQueue.sharedInstance is None:
-                DecoderQueue.sharedInstance = DecoderQueue(10, 5)
+                conf = Config.get()
+                maxsize, workers = 10, 5
+                if "DECODER_QUEUE" in conf:
+                    conf = conf["DECODER_QUEUE"]
+                    maxsize = conf["maxsize"] if "maxsize" in conf else maxsize
+                    workers = conf["workers"] if "workers" in conf else workers
+                   
+                DecoderQueue.sharedInstance = DecoderQueue(maxsize, workers)
         return DecoderQueue.sharedInstance
 
     def __init__(self, maxsize, workers):
@@ -272,7 +279,7 @@ class SoundRecorder(KiwiSDRStream):
                     logging.debug("put a new job into queue %s", filename)
                     DecoderQueue.instance().put(job)
                 except Full:
-                    logging.exception("decoding queue overflow; dropping one file")
+                    logging.error("decoding queue overflow; dropping one file")
                     job.unlink()
 
             self._start_ts = now

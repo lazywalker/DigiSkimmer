@@ -8,6 +8,11 @@ WSJTX = {
     }
 }
 
+DECODER_QUEUE = {
+    'maxsize': 20,
+    'workers': 5
+}
+
 STATIONS = {
     'szsdr': {                                      ## name of kiwisdr station
         'server_host': 'szsdr.ddns.net',            ## url of your kiwisdr station
