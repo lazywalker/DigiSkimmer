@@ -55,14 +55,13 @@ def setup_logger():
             },
         }
         logging.config.dictConfig(logconf)
-        logging
     except ImportError:
+        import logging, logging.handlers
         FORMAT = "%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"
         logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
     # log to file
     filehandler = logging.handlers.TimedRotatingFileHandler("log/ft8.log", when='d', interval=1, backupCount=7)
-
     filehandler.setLevel(logging.DEBUG)
     filehandler.suffix = "%Y-%m-%d_%H-%M-%S.log"
     filehandler.setFormatter(logging.Formatter("%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"))
