@@ -15,7 +15,7 @@ class PskReporter(object):
 
     @staticmethod
     def getSharedInstance(callsign, grid):
-        key = "%s-%s" % (callsign, grid)
+        key = "%s:%s" % (callsign, grid)
         with PskReporter.creationLock:
             if PskReporter.sharedInstance.get(key) is None:
                 PskReporter.sharedInstance[key] = PskReporter(callsign, grid)
@@ -34,7 +34,7 @@ class PskReporter(object):
     def scheduleNextUpload(self):
         if self.timer:
             return
-        delay = PskReporter.interval + random.uniform(0, 30)
+        delay = PskReporter.interval + random.uniform(0, 15)
         logging.info("scheduling next pskreporter upload in %f seconds", delay)
         self.timer = threading.Timer(delay, self.upload)
         self.timer.start()
@@ -82,6 +82,7 @@ class Uploader(object):
         self.callsign = callsign
         self.grid = grid
         self.sequence = 0
+        # self.startup_t = time.time()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def upload(self, spots):
@@ -105,6 +106,18 @@ class Uploader(object):
         # 50 seems to be a safe bet
         for chunk in chunks(encoded, 50):
             sInfo = self.getSenderInformation(chunk)
+
+            # IT WON'T WORKS..
+            # # we don't need to send the first three datagrams everytime, once per hour should be fine
+            # if self.sequence % 10 == 0 or time.time() - self.startup_t > 3600:
+            #     length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
+            #     header = self.getHeader(length)
+            #     packets.append(header + rHeader + sHeader + rInfo + sInfo)
+            # else:
+            #     length = 16 + len(sInfo)
+            #     header = self.getHeader(length)
+            #     packets.append(header + sInfo)
+
             length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
             header = self.getHeader(length)
             packets.append(header + rHeader + sHeader + rInfo + sInfo)
