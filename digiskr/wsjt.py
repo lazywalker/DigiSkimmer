@@ -1,3 +1,4 @@
+from datetime import datetime
 from digiskr.parser import LineParser
 import re, time
 from digiskr.pskreporter import PskReporter
@@ -22,13 +23,15 @@ class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
         # default when no setting is provided
         return 3
 
-
 class FT8Profile(WsjtProfile):
     def getInterval(self):
         return 15
 
     def getFileTimestampFormat(self):
         return "%Y%m%dT%H%M%SZ"
+
+    def getLineTimestampFormat(self):
+        return "%H%M%S"
 
     def decoder_commandline(self, file):
         return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
@@ -40,6 +43,9 @@ class WsprProfile(WsjtProfile):
 
     def getFileTimestampFormat(self):
         return "%Y%m%dT%H%MZ"
+
+    def getLineTimestampFormat(self):
+        return "%H%M"
 
     def decoder_commandline(self, file):
         cmd = ["wsprd"]
@@ -114,11 +120,10 @@ class WsjtParser(LineParser):
 
 class Decoder(ABC):
     def parse_timestamp(self, instring, dateformat):
-        return int(time.time())
-        # ts = datetime.strptime(instring, dateformat)
-        # return int(
-        #     datetime.combine(datetime.utcnow().date(), ts.time()).replace(tzinfo=timezone.utc).timestamp() * 1000
-        # )
+        ts = datetime.strptime(instring, dateformat)
+        return int(
+            datetime.combine(datetime.now().date(), ts.time()).timestamp()
+        )
 
     @abstractmethod
     def parse(self, msg, dial_freq):

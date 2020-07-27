@@ -119,6 +119,10 @@ class AudioDecoderProfile(ABC):
         pass
 
     @abstractmethod
+    def getLineTimestampFormat(self):
+        pass
+    
+    @abstractmethod
     def decoder_commandline(self, file):
         pass
 

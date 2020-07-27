@@ -1,7 +1,7 @@
 from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, AudioDecoderProfile, QueueJob
 from digiskr.parser import LineParser
 import subprocess
-import logging, os
+import logging, os, time
 from queue import Full
 
 
@@ -30,7 +30,13 @@ class WsjtSoundRecorder(BaseSoundRecorder):
             )
         
         messages = []
+        filename = os.path.basename(job.file)
+        file_t = time.strptime(filename.split('_')[0], self._profile.getFileTimestampFormat())
+        receive_ts = time.strftime(self._profile.getLineTimestampFormat(), file_t)
+
         for line in decoder.stdout:
+            line = line.replace("000000".encode("utf-8"), receive_ts.encode("utf-8"))
+            logging.log(logging.NOTSET, line)
             messages.append((job.freq, line))
         self._parser.setStation(self._options.station)
         self._parser.parse(messages)
