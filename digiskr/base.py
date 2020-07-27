@@ -267,7 +267,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
 
     def _write_samples(self, samples, *args):
         """Output to a file on the disk."""
-        now = time.gmtime()
+        now = time.localtime()
         sec_of_day = lambda x: 3600*x.tm_hour + 60*x.tm_min + x.tm_sec
         dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
         
