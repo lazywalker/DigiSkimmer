@@ -73,6 +73,18 @@ SCHEDULES = {
     ...
 }
 
+```
+
+`UPDATE:` digiskr support `band hop`, you can use a specific slot(or more) to rotate between bands, this feature is very helpful when you don't have enough slots. 
+
+Use `|` to enable band hop, see the config below, 4 slots will be used, the last one is rotate between 60-80-160, one per minute.
+
+```
+SCHEDULES = {
+    '21:00-08:00': {'szsdr': [20, 30, 40, '60|80|160']}, 
+
+    ...
+}
 
 ```
 

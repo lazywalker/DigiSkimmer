@@ -9,8 +9,8 @@ WSJTX = {
 }
 
 DECODER_QUEUE = {
-    'maxsize': 20,
-    'workers': 5
+    'maxsize': 10,
+    'workers': 3
 }
 
 STATIONS = {
@@ -49,10 +49,12 @@ SCHEDULES = {
     # '08:00-14:30': {'czsdr': [10, 12, 15, 17, 20, 30]},
     # '14:30-21:00': {'czsdr': [10, 15, 17, 20, 30, 40]},
 
+    ## 4 slots will be used, the last one is rotate between 60-80-160, one per minute.
+    # '21:00-08:00': {'szsdr': [20, 30, 40, '60|80|160']}, 
 
     ## for test
     # '*': {'cdsdr': [20]},
-    # '*': {'szsdr': [20,30], 'czsdr': [20,30]},
+    # '*': {'szsdr': [20|40,30], 'czsdr': [20,30]},
     # '14:00-17:08': {'szsdr': [40, 20], 'czsdr': [40]},
     # '20:00-20:51': {'szsdr': [20, 60]},
     # '20:51-22:00': {'szsdr': [40, 30, 20], 'czsdr': [20, 40]},
