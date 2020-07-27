@@ -5,9 +5,9 @@
 # This is free software, licensed under the GNU GENERAL PUBLIC LICENSE, Version 2.0
 #
 
-from digiskr import config
+from digiskr import config, DecoderQueue
 from digiskr.pskreporter import PskReporter
-from digiskr.audio import DecoderQueue
+from digiskr.audio import WsjtSoundRecorder
 from digiskr.wsjt import FT8Profile, WsjtParser
 import logging, os, sys, time, threading
 import gc
@@ -16,7 +16,7 @@ from copy import copy
 
 sys.path.append('./lib')
 from kiwi import KiwiWorker
-from digiskr import SoundRecorder, Option, Config
+from digiskr import Option, Config
 import timespan
 
 conf = Config.get()
@@ -91,7 +91,7 @@ def new_kiwiworker(o, band_hops_str, idx):
         os.popen("rm -f %s/*.wav" % options.dir)
 
     worker = KiwiWorker(
-            target=SoundRecorder(conf["PATH"], options, FT8Profile(), WsjtParser(options.callsign, options.grid)),
+            target=WsjtSoundRecorder(options, FT8Profile(), WsjtParser(options.callsign, options.grid)),
             name = "%s-%s" %(options.station, options.band_hops_str)
         )
     
