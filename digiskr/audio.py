@@ -311,8 +311,8 @@ class SoundRecorder(KiwiSDRStream):
 
             # switching to next frequency
             logging.warning("switching to %sm", self._band)
-            self._send_message('SET freq=%.3f' % self._freq)
-            # self.set_mod(self._options.modulation, self._options.lp_cut, self._options.hp_cut, self._freq)
+            # self._send_message('SET freq=%.3f' % self._freq)
+            self.set_mod(self._options.modulation, self._options.lp_cut, self._options.hp_cut, self._freq)
 
     def decode(self, job: QueueJob):
         logging.info("processing file %s", job.file)
