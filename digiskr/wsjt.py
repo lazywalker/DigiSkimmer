@@ -103,26 +103,13 @@ class WsjtParser(LineParser):
                 else:
                     decoder = WsprDecoder()
                 out = decoder.parse(msg, freq)
-                logging.debug(out)
+                logging.debug("[%s] %s", self.getStation(), out)
                 if "mode" in out:
-                    self.pushDecode(out["mode"])
                     if "callsign" in out and "locator" in out:
                         PskReporter.getSharedInstance(self.callsign, self.grid).spot(out)
 
             except ValueError:
                 logging.exception("error while parsing wsjt message")
-
-    def pushDecode(self, mode):
-        band = "unknown"
-        if self.band is not None:
-            band = self.band.getName()
-        if band is None:
-            band = "unknown"
-
-        if mode is None:
-            mode = "unknown"
-
-        name = "wsjt.decodes.{band}.{mode}".format(band=band, mode=mode)
 
 
 class Decoder(ABC):

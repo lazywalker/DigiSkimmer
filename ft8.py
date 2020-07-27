@@ -22,7 +22,7 @@ import timespan
 conf = Config.get()
 _run_event = threading.Event()
 _run_event.set()
-threading.currentThread().setName('main')
+threading.currentThread().setName("main")
 _sr_tasks = []
 
 def setup_logger():
@@ -49,7 +49,7 @@ def setup_logger():
             },
             'loggers': {
                 '': {
-                    'handlers': ['stream'],
+                    'handlers': ["stream"],
                     'level': 'DEBUG',
                 },
             },
@@ -61,9 +61,9 @@ def setup_logger():
         logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
     # log to file
-    filehandler = logging.handlers.TimedRotatingFileHandler("log/ft8.log", when='d', interval=1, backupCount=7)
+    filehandler = logging.handlers.TimedRotatingFileHandler("log/ft8.log", when="midnight", interval=1, backupCount=7)
     filehandler.setLevel(logging.DEBUG)
-    filehandler.suffix = "%Y-%m-%d_%H-%M-%S.log"
+    filehandler.suffix = "%Y%m%d.log"
     filehandler.setFormatter(logging.Formatter("%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"))
     logging.getLogger('').addHandler(filehandler)
 
@@ -71,7 +71,7 @@ def setup_logger():
 def setup_kiwistation(station, station_name):
     options = Option(**station)
     options.station = station_name
-    options.user = config.KIWI_USER
+    options.user = conf["KIWI_USER"] if "KIWI_USER" in conf else config.KIWI_USER
     return options
 
 def new_kiwiworker(o, band_hops_str, idx):
@@ -80,18 +80,18 @@ def new_kiwiworker(o, band_hops_str, idx):
     options.band = band_hops[0]
     options.frequency = config.FT8_BANDS[options.band]
     options.band_hops_str = band_hops_str
-    options.band_hops = band_hops  ## ex: ['20','30', '40']
+    options.band_hops = band_hops  ## ex: ["20','30', '40"]
     options.freq_hops = [config.FT8_BANDS[b] for b in band_hops]  ## [14074, 10136, 7074]
     options.idx = idx
     options.timestamp = int(time.time() + os.getpid() + idx) & 0xffffffff
-    options.dir = os.path.join(conf['PATH'], options.station, "ft8")
+    options.dir = os.path.join(conf["PATH"], options.station, "ft8")
     if not os.path.isdir(options.dir):
         os.makedirs(options.dir, exist_ok=True)
     else:
         os.popen("rm -f %s/*.wav" % options.dir)
 
     worker = KiwiWorker(
-            target=SoundRecorder(conf['PATH'], options, FT8Profile(), WsjtParser(options.callsign, options.grid)),
+            target=SoundRecorder(conf["PATH"], options, FT8Profile(), WsjtParser(options.callsign, options.grid)),
             name = "%s-%s" %(options.station, options.band_hops_str)
         )
     
@@ -108,7 +108,7 @@ def remove_thread(snd, r):
     r.stop()
     if snd.__contains__(r):
         snd.remove(r)
-        logging.info('Task #%s removed', r.getName())
+        logging.info("Task #%s removed", r.getName())
 
 def match_schedule(schedules):
     for (ts, schedule) in schedules.items():
@@ -119,20 +119,21 @@ def match_schedule(schedules):
 
 def main():
     idx = 0
-    schedule = match_schedule(conf['SCHEDULES'])
+    schedule = match_schedule(conf["SCHEDULES"])
     if schedule is not None:
-        logging.info('current schedule is: %s', schedule)
+        logging.info("current schedule is: %s", schedule)
         for (st, bands) in schedule.items():
-            options = setup_kiwistation(conf['STATIONS'][st], st)
+            options = setup_kiwistation(conf["STATIONS"][st], st)
             for band in bands:
                 _sr_tasks.append(new_kiwiworker(options, band, idx))
                 idx += 1
     try:
         if len(_sr_tasks) == 0:
-            logging.warning('No tasks in queue.')
-            logging.warning('I\'m out')
+            logging.warning("No tasks in queue.")
+            logging.warning("I\'m out")
             exit(0)
         else:
+            DecoderQueue.instance()
             for i,r in enumerate(_sr_tasks):
                 r.start()
 
@@ -140,7 +141,7 @@ def main():
         while _run_event.is_set():
             time.sleep(1)
 
-            schedule = match_schedule(conf['SCHEDULES'])
+            schedule = match_schedule(conf["SCHEDULES"])
             if schedule is not None:
                 # logging.debug('current schedule is: %s', schedule)
                 ## remove out-of-date tasks
@@ -166,14 +167,14 @@ def main():
                                 exsit_task = True
                                 break
                         if not exsit_task:
-                            options = setup_kiwistation(conf['STATIONS'][st], st)
+                            options = setup_kiwistation(conf["STATIONS"][st], st)
                             task = new_kiwiworker(options, band, len(_sr_tasks)+1)
                             task.start()
                             _sr_tasks.append(task)
             else: #no tasks available
                 [remove_thread(_sr_tasks, r) for r in _sr_tasks]
-                logging.warning('There is no tasks')
-                logging.warning('I\'m waiting...')
+                logging.warning("There is no tasks")
+                logging.warning("I'm waiting...")
 
 
     except KeyboardInterrupt:
@@ -184,7 +185,7 @@ def main():
         cleanup()
         logging.exception("Exception: threads successfully closed")
 
-    logging.debug('gc %s' % gc.garbage)
+    logging.debug("gc %s" % gc.garbage)
 
 if __name__ == '__main__':
     setup_logger()

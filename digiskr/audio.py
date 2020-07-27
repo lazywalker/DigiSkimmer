@@ -279,7 +279,7 @@ class SoundRecorder(KiwiSDRStream):
                 filename = self._get_output_filename()
                 job = QueueJob(self, filename, self._freq)
                 try:
-                    logging.info("put a new job into queue %s", filename)
+                    logging.debug("put a new job into queue %s", filename)
                     DecoderQueue.instance().put(job)
                 except Full:
                     logging.error("decoding queue overflow; dropping one file")
@@ -327,6 +327,7 @@ class SoundRecorder(KiwiSDRStream):
         messages = []
         for line in decoder.stdout:
             messages.append((job.freq, line))
+        self._parser.setStation(self._options.station)
         self._parser.parse(messages)
         
         try:
