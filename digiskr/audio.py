@@ -29,10 +29,10 @@ class QueueJob(object):
 
     def unlink(self):
         try:
-            logging.debug("deleting file %s" % self.file)
+            # logging.debug("deleting file %s" % self.file)
             os.unlink(self.file)
         except FileNotFoundError:
-            logging.warning("file %s not found" % self.file)
+            logging.warning("file %s not found", self.file)
             pass
 
 
@@ -165,6 +165,7 @@ class SoundRecorder(KiwiSDRStream):
         self._options = options
         self._options.dt = profile.getInterval()
         self._type = 'SND'
+        self._band = options.band
         self._freq = options.frequency
         self._start_ts = None
         self._start_time = None
@@ -175,6 +176,7 @@ class SoundRecorder(KiwiSDRStream):
         self._profile = profile
         self._parser = parser
 
+        self.band_hop_minute = time.localtime().tm_min
         self.tmp_dir = Config.get()['PATH']
 
     def _setup_rx_params(self):
@@ -272,15 +274,19 @@ class SoundRecorder(KiwiSDRStream):
         dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
         
         if self._start_ts is None or (self._options.filename == '' and dt_reached):
+            ## new decoding job
             if self._start_ts is not None:
                 filename = self._get_output_filename()
                 job = QueueJob(self, filename, self._freq)
                 try:
-                    logging.debug("put a new job into queue %s", filename)
+                    logging.info("put a new job into queue %s", filename)
                     DecoderQueue.instance().put(job)
                 except Full:
                     logging.error("decoding queue overflow; dropping one file")
                     job.unlink()
+
+                ## handle band hops
+                self._hop()
 
             self._start_ts = now
             self._start_time = time.time()
@@ -291,6 +297,22 @@ class SoundRecorder(KiwiSDRStream):
             # TODO: something better than that
             samples.tofile(fp)
         self._update_wav_header()
+
+    def _hop(self):
+        ## if we are hitting a new minute
+        if len(self._options.band_hops) > 1 and self.band_hop_minute != time.localtime().tm_min:
+            self.band_hop_minute = time.localtime().tm_min
+            for i, f in enumerate(self._options.freq_hops):
+                if f == self._freq:
+                    next = i+1 if i < len(self._options.freq_hops)-1 else 0
+                    self._freq = self._options.freq_hops[next]
+                    self._band = self._options.band_hops[next]
+                    break
+
+            # switching to next frequency
+            logging.warning("switching to %sm", self._band)
+            self._send_message('SET freq=%.3f' % self._freq)
+            # self.set_mod(self._options.modulation, self._options.lp_cut, self._options.hp_cut, self._freq)
 
     def decode(self, job: QueueJob):
         logging.info("processing file %s", job.file)

@@ -3,10 +3,10 @@ import os
 import logging
 import json
 
-VERSION = '0.2'
+VERSION = '0.21'
 KIWI_USER = "digiskr_%s" % VERSION
 DECODING_SOFTWARE = "DigiSkimmer %s" % VERSION
-FT8_BANDS = {160:1840, 80:3573, 60:5357, 40:7074, 30:10136, 20:14074, 17:18100, 15:21074, 12:24915, 10:28074, 6:50313}
+FT8_BANDS = {'160':1840, '80':3573, '60':5357, '40':7074, '30':10136, '20':14074, '17':18100, '15':21074, '12':24915, '10':28074, '6':50313}
 
 class ConfigNotFoundException(Exception):
     pass

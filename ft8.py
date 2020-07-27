@@ -74,13 +74,17 @@ def setup_kiwistation(station, station_name):
     options.user = config.KIWI_USER
     return options
 
-def new_kiwiworker(o, band, idx):
+def new_kiwiworker(o, band_hops_str, idx):
     options = copy(o)
-    options.band = band
+    band_hops = str(band_hops_str).split('|')
+    options.band = band_hops[0]
+    options.frequency = config.FT8_BANDS[options.band]
+    options.band_hops_str = band_hops_str
+    options.band_hops = band_hops  ## ex: ['20','30', '40']
+    options.freq_hops = [config.FT8_BANDS[b] for b in band_hops]  ## [14074, 10136, 7074]
     options.idx = idx
     options.timestamp = int(time.time() + os.getpid() + idx) & 0xffffffff
-    options.frequency = config.FT8_BANDS[options.band]
-    options.dir = os.path.join(conf['PATH'], options.station, str(options.band))
+    options.dir = os.path.join(conf['PATH'], options.station, "ft8")
     if not os.path.isdir(options.dir):
         os.makedirs(options.dir, exist_ok=True)
     else:
@@ -88,7 +92,7 @@ def new_kiwiworker(o, band, idx):
 
     worker = KiwiWorker(
             target=SoundRecorder(conf['PATH'], options, FT8Profile(), WsjtParser(options.callsign, options.grid)),
-            name = "%s-%d" %(options.station, band)
+            name = "%s-%s" %(options.station, options.band_hops_str)
         )
     
     return worker
@@ -145,7 +149,7 @@ def main():
                     keep_it = False
                     if bands is not None:
                         for band in bands:
-                            if band == r._options.band:
+                            if band == r._options.band_hops_str:
                                 keep_it = True
                                 break
                     else:
@@ -158,7 +162,7 @@ def main():
                     for band in bands:
                         exsit_task = False
                         for r in _sr_tasks:
-                            if r.getName() == '%s-%d' %(st, band):
+                            if r.getName() == "%s-%s" %(st, band):
                                 exsit_task = True
                                 break
                         if not exsit_task:
