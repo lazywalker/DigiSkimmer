@@ -14,7 +14,7 @@ class WsjtSoundRecorder(BaseSoundRecorder):
         filename = self._get_output_filename()
         job = QueueJob(self, filename, self._freq)
         try:
-            logging.debug("put a new job into queue %s", filename)
+            # logging.debug("put a new job into queue %s", filename)
             DecoderQueue.instance().put(job)
         except Full:
             logging.error("decoding queue overflow; dropping one file")
