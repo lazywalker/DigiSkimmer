@@ -189,5 +189,12 @@ def main():
 
 if __name__ == '__main__':
     setup_logger()
+    fail = False
+    for e in Config.validateConfig():
+        logging.fatal(e)
+        fail = True
+
+    if fail: exit(1)
+
     main()
 # EOF

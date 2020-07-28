@@ -77,6 +77,10 @@ class Config:
             Config.checkTempDirectory(conf)
         ]
 
+        errors += [
+            Config.checkStations(conf)
+        ]
+
         return [e for e in errors if e is not None]
 
     @staticmethod
@@ -90,4 +94,16 @@ class Config:
             return ConfigError(key, "temporary directory path is not a directory")
         if not os.access(conf[key], os.W_OK):
             return ConfigError(key, "temporary directory is not writable")
+        return None
+
+    @staticmethod
+    def checkStations(conf: dict):
+        key = "STATIONS"
+        if key not in conf or conf[key] is None:
+            return ConfigError(key, "STATIONS is not set")
+        
+        for k, v in conf[key].items():
+            if not "callsign" in v:
+                return ConfigError(key, "%s->callsign is not set" % k)
+
         return None

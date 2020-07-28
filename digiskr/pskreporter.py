@@ -82,8 +82,6 @@ class Uploader(object):
         self.station = Config.get()["STATIONS"][station]
         self.station["name"] = station
         # logging.debug("Station: %s", self.station)
-
-        # self.startup_t = time.time()
         self.sequence = 0
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -108,18 +106,6 @@ class Uploader(object):
         # 50 seems to be a safe bet
         for chunk in chunks(encoded, 50):
             sInfo = self.getSenderInformation(chunk)
-
-            # IT WON'T WORKS..
-            # # we don't need to send the first three datagrams everytime, once per hour should be fine
-            # if self.sequence % 10 == 0 or time.time() - self.startup_t > 3600:
-            #     length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
-            #     header = self.getHeader(length)
-            #     packets.append(header + rHeader + sHeader + rInfo + sInfo)
-            # else:
-            #     length = 16 + len(sInfo)
-            #     header = self.getHeader(length)
-            #     packets.append(header + sInfo)
-
             length = 16 + len(rHeader) + len(sHeader) + len(rInfo) + len(sInfo)
             header = self.getHeader(length)
             packets.append(header + rHeader + sHeader + rInfo + sInfo)
