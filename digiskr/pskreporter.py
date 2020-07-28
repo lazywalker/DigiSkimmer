@@ -81,7 +81,7 @@ class Uploader(object):
     def __init__(self, station: str):
         self.station = Config.get()["STATIONS"][station]
         self.station["name"] = station
-        logging.debug("Station: %s", self.station)
+        # logging.debug("Station: %s", self.station)
 
         # self.startup_t = time.time()
         self.sequence = 0
@@ -155,10 +155,10 @@ class Uploader(object):
     def getReceiverInformationHeader(self):
         return bytes(
             # id, length
-            [0x00, 0x03, 0x00, 0x24]
+            [0x00, 0x03, 0x00, 0x2C]
             + Uploader.receieverDelimiter
             # number of fields
-            + [0x00, 0x03, 0x00, 0x00]
+            + [0x00, 0x04, 0x00, 0x00]
             # receiverCallsign
             + [0x80, 0x02, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # receiverLocator
@@ -166,7 +166,7 @@ class Uploader(object):
             # decodingSoftware
             + [0x80, 0x08, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # antennaInformation
-            # + [0x80, 0x09, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            + [0x80, 0x09, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # padding
             + [0x00, 0x00]
         )
@@ -177,7 +177,7 @@ class Uploader(object):
         antennaInformation = self.station["antenna"] if "antenna" in self.station else ""
         decodingSoftware = config.DECODING_SOFTWARE
         
-        body = [b for s in [callsign, locator, decodingSoftware] for b in self.encodeString(s)]
+        body = [b for s in [callsign, locator, decodingSoftware, antennaInformation] for b in self.encodeString(s)]
         body = self.pad(body, 4)
         body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
         return body
