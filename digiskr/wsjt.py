@@ -131,14 +131,16 @@ class Decoder(ABC):
 
 
 class JT9Decoder(Decoder):
-    locator_pattern = re.compile("[A-Z0-9]+\\s([A-Z0-9]+)\\s([A-R]{2}[0-9]{2})$")
+    locator_pattern = re.compile(".+[A-Z0-9]+\s([A-Z0-9]+)\s([A-R]{2}[0-9]{2})$")
 
     def parse(self, msg, dial_freq):
         # ft8 sample
         # '222100 -15 -0.0  508 ~  CQ EA7MJ IM66'
+        # '000000 -11  0.2 1000 ~  CQ EU BG4WOM OM92'
         # jt65 sample
         # '2352  -7  0.4 1801 #  R0WAS R2ABM KO85'
         # '0003  -4  0.4 1762 #  CQ R2ABM KO85'
+
         modes = list(WsjtParser.modes.keys())
         if msg[19] in modes:
             dateformat = "%H%M"
