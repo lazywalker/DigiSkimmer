@@ -77,7 +77,7 @@ class DecoderQueue(Queue):
         with DecoderQueue.creationLock:
             if DecoderQueue.sharedInstance is None:
                 conf = Config.get()
-                maxsize, workers = 10, 5
+                maxsize, workers = 10, 3
                 if "DECODER_QUEUE" in conf:
                     conf = conf["DECODER_QUEUE"]
                     maxsize = conf["maxsize"] if "maxsize" in conf else maxsize
