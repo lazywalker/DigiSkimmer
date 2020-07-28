@@ -2,12 +2,10 @@ from abc import ABC, abstractmethod
 
 
 class LineParser(ABC):
-    def __init__(self, callsign, grid):
+    def __init__(self, station: str):
         self.dial_freq = None
-        self.station = None
         self.band = None
-        self.callsign = callsign
-        self.grid = grid
+        self.station = station
 
     @abstractmethod
     def parse(self, raw):
@@ -24,6 +22,3 @@ class LineParser(ABC):
 
     def getStation(self):
         return self.station
-
-    def setStation(self, station: str):
-        self.station = station

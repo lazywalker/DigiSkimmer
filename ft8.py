@@ -91,7 +91,7 @@ def new_kiwiworker(o, band_hops_str, idx):
         os.popen("rm -f %s/*.wav" % options.dir)
 
     worker = KiwiWorker(
-            target=WsjtSoundRecorder(options, FT8Profile(), WsjtParser(options.callsign, options.grid)),
+            target=WsjtSoundRecorder(options, FT8Profile(), WsjtParser(options.station)),
             name = "%s-%s" %(options.station, options.band_hops_str)
         )
     

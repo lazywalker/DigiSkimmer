@@ -1,3 +1,4 @@
+from digiskr.config import Config
 from digiskr import config
 import logging
 import threading
@@ -14,21 +15,20 @@ class PskReporter(object):
     supportedModes = ["FT8", "FT4", "JT9", "JT65", "JS8"]
 
     @staticmethod
-    def getSharedInstance(callsign, grid):
-        key = "%s:%s" % (callsign, grid)
+    def getSharedInstance(station: str):
         with PskReporter.creationLock:
-            if PskReporter.sharedInstance.get(key) is None:
-                PskReporter.sharedInstance[key] = PskReporter(callsign, grid)
-        return PskReporter.sharedInstance[key]
+            if PskReporter.sharedInstance.get(station) is None:
+                PskReporter.sharedInstance[station] = PskReporter(station)
+        return PskReporter.sharedInstance[station]
 
     @staticmethod
     def stop():
         [psk.cancelTimer() for psk in PskReporter.sharedInstance.values()]
 
-    def __init__(self, callsign, grid):
+    def __init__(self, station: str):
         self.spots = []
         self.spotLock = threading.Lock()
-        self.uploader = Uploader(callsign, grid)
+        self.uploader = Uploader(station)
         self.timer = None
 
     def scheduleNextUpload(self):
@@ -78,15 +78,17 @@ class Uploader(object):
     receieverDelimiter = [0x99, 0x92]
     senderDelimiter = [0x99, 0x93]
 
-    def __init__(self, callsign, grid):
-        self.callsign = callsign
-        self.grid = grid
-        self.sequence = 0
+    def __init__(self, station: str):
+        self.station = Config.get()["STATIONS"][station]
+        self.station["name"] = station
+        logging.debug("Station: %s", self.station)
+
         # self.startup_t = time.time()
+        self.sequence = 0
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def upload(self, spots):
-        logging.warning("uploading %i spots by %s on %s", len(spots), self.callsign, self.grid)
+        logging.warning("[%s] uploading %i spots", self.station["name"], len(spots))
         for packet in self.getPackets(spots):
             self.socket.sendto(packet, ("report.pskreporter.info", 4739))
 
@@ -163,14 +165,18 @@ class Uploader(object):
             + [0x80, 0x04, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # decodingSoftware
             + [0x80, 0x08, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
+            # antennaInformation
+            # + [0x80, 0x09, 0xFF, 0xFF, 0x00, 0x00, 0x76, 0x8F]
             # padding
             + [0x00, 0x00]
         )
 
     def getReceiverInformation(self):
-        callsign = self.callsign
-        locator = self.grid
+        callsign = self.station["callsign"]
+        locator = self.station["grid"]
+        antennaInformation = self.station["antenna"] if "antenna" in self.station else ""
         decodingSoftware = config.DECODING_SOFTWARE
+        
         body = [b for s in [callsign, locator, decodingSoftware] for b in self.encodeString(s)]
         body = self.pad(body, 4)
         body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)

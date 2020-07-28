@@ -112,7 +112,7 @@ class WsjtParser(LineParser):
                 logging.debug("[%s] %s", self.getStation(), out)
                 if "mode" in out:
                     if "callsign" in out and "locator" in out:
-                        PskReporter.getSharedInstance(self.callsign, self.grid).spot(out)
+                        PskReporter.getSharedInstance(self.getStation()).spot(out)
 
             except ValueError:
                 logging.exception("error while parsing wsjt message")

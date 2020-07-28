@@ -289,7 +289,13 @@ class KiwiSDRStream(KiwiSDRStreamBase):
         if name == 'load_cfg':
             logging.debug("load_cfg: (cfg info not printed)")
             d = json.loads(urllib.unquote(value))
+            # logging.debug(d)
+            # read rx_antenna, rx_grid and rx_gps
+            self._rx_antenna = urllib.unquote(d['rx_antenna'])
+            self._rx_grid = urllib.unquote(d['rx_grid'])
             self._gps_pos = [float(x) for x in urllib.unquote(d['rx_gps'])[1:-1].split(",")[0:2]]
+            logging.info("GNSS position: lat,lon=[%+6.2f, %+7.2f], Grid: %s, Antenna: %s" 
+                % (self._gps_pos[0], self._gps_pos[1], self._rx_grid, urllib.unquote(self._rx_antenna)))
             self._on_gnss_position(self._gps_pos)
         else:
             logging.debug("recv MSG (%s) %s: %s", self._stream_name, name, value)

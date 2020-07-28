@@ -1,3 +1,4 @@
+from digiskr.config import Config
 from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, AudioDecoderProfile, QueueJob
 from digiskr.parser import LineParser
 import subprocess
@@ -38,7 +39,14 @@ class WsjtSoundRecorder(BaseSoundRecorder):
             line = line.replace("000000".encode("utf-8"), receive_ts.encode("utf-8"))
             logging.log(logging.NOTSET, line)
             messages.append((job.freq, line))
-        self._parser.setStation(self._options.station)
+        
+        # set grid & antenna information from kiwi station, if we can't found them at config
+        if not "grid" in Config.get()["STATIONS"][self._options.station]:
+            Config.get()["STATIONS"][self._options.station]["grid"] = self._rx_grid
+        if not "antenna" in Config.get()["STATIONS"][self._options.station]:
+            Config.get()["STATIONS"][self._options.station]["antenna"] = self._rx_antenna
+        
+        ## parse raw messages
         self._parser.parse(messages)
         
         try:
