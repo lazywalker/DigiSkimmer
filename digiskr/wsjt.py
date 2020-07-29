@@ -109,7 +109,7 @@ class WsjtParser(LineParser):
                 else:
                     decoder = WsprDecoder()
                 out = decoder.parse(msg, freq)
-                logging.debug("[%s] %s T%s DB%2.1f DT%2.1f F%d %s : %s %s", self.getStation(), 
+                logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%d %s : %s %s", self.getStation(), 
                     out["mode"], 
                     time.strftime("%m%d%H%M%S",  time.localtime(out["timestamp"])),
                     out["db"], out["dt"], out["freq"], out["msg"], 

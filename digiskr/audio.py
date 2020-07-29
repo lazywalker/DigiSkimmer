@@ -21,7 +21,7 @@ class WsjtSoundRecorder(BaseSoundRecorder):
             job.unlink()
 
     def decode(self, job: QueueJob):
-        logging.info("processing file %s", job.file)
+        logging.debug("processing file %s", job.file)
         file = os.path.realpath(job.file)
         decoder = subprocess.Popen(
             ["nice", "-n", "10"] + self._profile.decoder_commandline(file),
