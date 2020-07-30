@@ -92,12 +92,7 @@ class Config:
         key = "PATH"
         if key not in conf or conf[key] is None:
             return ConfigError(key, "temporary directory is not set")
-        if not os.path.exists(conf[key]):
-            return ConfigError(key, "temporary directory doesn't exist")
-        if not os.path.isdir(conf[key]):
-            return ConfigError(key, "temporary directory path is not a directory")
-        if not os.access(conf[key], os.W_OK):
-            return ConfigError(key, "temporary directory is not writable")
+            
         return None
 
     @staticmethod
