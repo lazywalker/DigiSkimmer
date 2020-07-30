@@ -80,7 +80,7 @@ def new_kiwiworker(o, band_hops_str, idx):
     def _extract_band(band_hops_str):
         local = str(band_hops_str).split('|')
         mode_hops = [config.MODES[b[-1]] if b[-1] in config.MODES else "FT8" for b in local]       # ['FT8', 'FT4', 'FT8', 'FT8']
-        band_hops = [b[:-1] if len(b) == 3 else b for b in local]                                  # ['20', '30', '40', '60']
+        band_hops = [b[:-1] if b[-1] not in [str(n) for n in range(0,9)] else b for b in local]    # ['20', '30', '40', '60']
         freq_hops = [config.BANDS[mode_hops[i]][b] for i,b in enumerate(band_hops)]                # [14074, 10140, 7074, 5357]
         return mode_hops, band_hops, freq_hops
 
