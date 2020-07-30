@@ -1,3 +1,4 @@
+from datetime import datetime
 from digiskr.parser import LineParser
 import threading
 import logging, os, time, sys, struct
@@ -130,7 +131,6 @@ class Option:
     def __init__(self, **entries):
         default = {
             'filename': '',
-            'quiet': False,
             'dir': None,
             'tlimit': None,
             'dt': 0,
@@ -218,9 +218,8 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
                              "(pip install samplerate)")
 
     def _process_audio_samples(self, seq, samples, rssi):
-        if self._options.quiet is False:
-            sys.stdout.write('\rBlock: %08x, RSSI: %6.1f\r' % (seq, rssi))
-            sys.stdout.flush()
+        sys.stdout.write('\rBlock: %08x, RSSI: %6.1f\r' % (seq, rssi))
+        sys.stdout.flush()
 
         if self._options.resample > 0:
             if HAS_RESAMPLER:
@@ -275,13 +274,23 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         sec_of_day = lambda x: 3600*x.tm_hour + 60*x.tm_min + x.tm_sec
         dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
         
+        # first time or timespan is reached
         if self._start_ts is None or (self._options.filename == '' and dt_reached):
-            ## new decoding job
-            if self._start_ts is not None:
-                self.pre_decode()
+            # handle time gap (first time or after mode switch)
+            time_to_wait = (60 - datetime.now().second) % self._profile.getInterval()
+            if time_to_wait > 0:
+                bar = "".join(["||" for _ in range(0, time_to_wait)])
+                sys.stdout.write("\r%s\r" % bar)
+                sys.stdout.flush()
+                return
 
-                ## handle band hops
-                self._hop()
+            # ignore first time (empty file)
+            if self._start_ts is not None:
+                ## new decoding job
+                if self._start_ts is not None:
+                    self.pre_decode()
+                    ## handle band hops
+                    self._hop()
 
             self._start_ts = now
             self._start_time = time.time()

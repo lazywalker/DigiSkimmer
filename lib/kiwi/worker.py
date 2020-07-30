@@ -1,4 +1,4 @@
-import logging, datetime
+import logging
 import threading
 
 from .client import KiwiTooBusyError, KiwiTimeLimitError, KiwiServerTerminatedConnection
@@ -36,12 +36,6 @@ class KiwiWorker(threading.Thread):
 
             try:
                 self._recorder.open()
-                # FWait until a quarter to kick-off
-                time_to_wait = (60 - datetime.datetime.now().second) % 15
-                if time_to_wait > 0:
-                    logging.info('Wait %d seconds to begin...', time_to_wait)
-                    self._event.wait(timeout = time_to_wait)
-                    
                 while self._run_event.is_set():
                     self._recorder.run()
             except KiwiServerTerminatedConnection as e:
