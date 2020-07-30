@@ -72,6 +72,8 @@ class PskReporter(object):
     def cancelTimer(self):
         if self.timer:
             self.timer.cancel()
+        self.timer.join()
+        self.timer = None
 
 
 class Uploader(object):

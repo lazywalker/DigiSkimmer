@@ -109,7 +109,12 @@ class WsjtParser(LineParser):
                 else:
                     decoder = WsprDecoder()
                 out = decoder.parse(msg, freq)
-                logging.debug("[%s] %s", self.getStation(), out)
+                logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%d %s : %s %s", self.getStation(), 
+                    out["mode"], 
+                    time.strftime("%m%d%H%M%S",  time.localtime(out["timestamp"])),
+                    out["db"], out["dt"], out["freq"], out["msg"], 
+                    out["callsign"] if "callsign" in out else "-", 
+                    out["locator"] if "locator" in out else "")
                 if "mode" in out:
                     if "callsign" in out and "locator" in out:
                         PskReporter.getSharedInstance(self.getStation()).spot(out)
