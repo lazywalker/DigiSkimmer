@@ -1,10 +1,13 @@
 from datetime import datetime
-from digiskr.parser import LineParser
+import random
 import threading
 import logging, os, time, sys, struct
 import numpy as np
 from queue import Queue, Full, Empty
 from abc import ABC, ABCMeta, abstractmethod
+
+from numpy.core.fromnumeric import around
+from digiskr import config
 from digiskr.config import Config
 
 from kiwi.client import KiwiSDRStream
@@ -112,6 +115,10 @@ class DecoderQueue(Queue):
 
 class AudioDecoderProfile(ABC):
     @abstractmethod
+    def getMode(self):
+        pass
+
+    @abstractmethod
     def getInterval(self):
         pass
 
@@ -163,20 +170,17 @@ class Option:
         self.__dict__.update(entries)
 
 class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
-    def __init__(self, options: Option, profile: AudioDecoderProfile, parser: LineParser):
+    def __init__(self, options: Option):
         super(BaseSoundRecorder, self).__init__()
         self._options = options
-        self._options.dt = profile.getInterval()
         self._type = 'SND'
-        self._band = options.band
-        self._freq = options.frequency
+        self._band = options.band_hops[0]
+        self._freq = config.BANDS[self._profile.getMode()][self._band]
         self._start_ts = None
         self._start_time = None
         self._squelch = None
         self._num_channels = 2 if options.modulation == 'iq' else 1
         self._resampler = None
-        self._profile = profile
-        self._parser = parser
 
         self.band_hop_minute = time.localtime().tm_min
         self.tmp_dir = Config.get()['PATH']
@@ -218,9 +222,6 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
                              "(pip install samplerate)")
 
     def _process_audio_samples(self, seq, samples, rssi):
-        sys.stdout.write('\rBlock: %08x, RSSI: %6.1f\r' % (seq, rssi))
-        sys.stdout.flush()
-
         if self._options.resample > 0:
             if HAS_RESAMPLER:
                 ## libsamplerate resampling
@@ -245,7 +246,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
             filename = '%s%s.wav' % (self._options.filename, station)
         else:
             ts  = time.strftime(self._profile.getFileTimestampFormat(), self._start_ts)
-            filename = '%s_%d%s_%s.wav' % (ts, int(self._freq * 1000), station, self._options.modulation)
+            filename = '%s_%d%s_%s.wav' % (ts, int(self._freq * 1000), station, self._profile.getMode())
         if self._options.dir is not None:
             filename = '%s/%s' % (self._options.dir, filename)
         return filename
@@ -273,15 +274,15 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         now = time.localtime()
         sec_of_day = lambda x: 3600*x.tm_hour + 60*x.tm_min + x.tm_sec
         dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
-        
+        time_to_wait = (60 - datetime.now().second) % self._profile.getInterval()
+
+        # print out progress bar at the buttom of screen
+        self._print_status(time_to_wait)
+
         # first time or timespan is reached
         if self._start_ts is None or (self._options.filename == '' and dt_reached):
             # handle time gap (first time or after mode switch)
-            time_to_wait = (60 - datetime.now().second) % self._profile.getInterval()
             if time_to_wait > 0:
-                bar = "".join(["||" for _ in range(0, time_to_wait)])
-                sys.stdout.write("\r%s\r" % bar)
-                sys.stdout.flush()
                 return
 
             # ignore first time (empty file)
@@ -290,7 +291,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
                 if self._start_ts is not None:
                     self.pre_decode()
                     ## handle band hops
-                    self._hop()
+                    self.on_bandhop()
 
             self._start_ts = now
             self._start_time = time.time()
@@ -302,21 +303,18 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
             samples.tofile(fp)
         self._update_wav_header()
 
-    def _hop(self):
-        ## if we are hitting a new minute
-        if len(self._options.band_hops) > 1 and self.band_hop_minute != time.localtime().tm_min:
-            self.band_hop_minute = time.localtime().tm_min
-            for i, f in enumerate(self._options.freq_hops):
-                if f == self._freq:
-                    next = i+1 if i < len(self._options.freq_hops)-1 else 0
-                    self._freq = self._options.freq_hops[next]
-                    self._band = self._options.band_hops[next]
-                    break
+    def _print_status(self, time_to_wait):
+        bar = "".join(["|" for _ in range(0, int(np.around(self._profile.getInterval()-time_to_wait)))]) + "".join(["-" for _ in range(0, int(np.around(time_to_wait)))])
+        loading = ["-", "\\", "|", "/"][int(random.uniform(0, 4))]
+        tab = ""
+        if self._profile.getMode() == "FT4":    # ft4 takes second position of status bar
+            tab = "".join(["\t" for _ in range(0,3)])
+        sys.stdout.write("\r  %s%s%s:%s\r" % (loading, tab, self._profile.getMode(), bar))
+        sys.stdout.flush()
 
-            # switching to next frequency
-            logging.warning("switching to %sm", self._band)
-            # self._send_message('SET freq=%.3f' % self._freq)
-            self.set_mod(self._options.modulation, self._options.lp_cut, self._options.hp_cut, self._freq)
+    @abstractmethod
+    def on_bandhop(self):
+        pass
 
     @abstractmethod
     def pre_decode(self):

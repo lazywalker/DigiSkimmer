@@ -1,14 +1,35 @@
+from digiskr.wsjt import WsjtParser, WsjtProfile
 from digiskr.config import Config
-from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, AudioDecoderProfile, QueueJob
-from digiskr.parser import LineParser
+from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, QueueJob
 import subprocess
 import logging, os, time
 from queue import Full
 
 
 class WsjtSoundRecorder(BaseSoundRecorder):
-    def __init__(self, options: Option, profile: AudioDecoderProfile, parser: LineParser):
-        super(WsjtSoundRecorder, self).__init__(options, profile, parser)
+    def __init__(self, options: Option):
+        self._profile= WsjtProfile.get(options.mode_hops[0])
+        self._parser = WsjtParser(options.station)
+        
+        options.dt = self._profile.getInterval()
+        super(WsjtSoundRecorder, self).__init__(options)
+
+    def on_bandhop(self):
+        ## if we are hitting a new minute
+        if len(self._options.band_hops) > 1 and self.band_hop_minute != time.localtime().tm_min:
+            self.band_hop_minute = time.localtime().tm_min
+            for i, f in enumerate(self._options.freq_hops):
+                if f == self._freq:
+                    next = i+1 if i < len(self._options.freq_hops)-1 else 0
+                    self._freq = self._options.freq_hops[next]
+                    self._band = self._options.band_hops[next]
+                    self._profile = WsjtProfile.get(self._options.mode_hops[next])
+                    break
+
+            # switching to next frequency and mode
+            logging.warning("switching to %s-%sm", self._profile.getMode(), self._band)
+            self.set_mod(self._options.modulation, self._options.lp_cut, self._options.hp_cut, self._freq)
+
 
     def pre_decode(self):
         filename = self._get_output_filename()
