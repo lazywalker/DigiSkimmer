@@ -2,23 +2,13 @@ from datetime import datetime
 import random
 import threading
 import logging, os, time, sys, struct
-import numpy as np
 from queue import Queue, Full, Empty
 from abc import ABC, ABCMeta, abstractmethod
 
-from numpy.core.fromnumeric import around
 from digiskr import config
 from digiskr.config import Config
 
 from kiwi.client import KiwiSDRStream
-
-HAS_RESAMPLER = True
-try:
-    ## if available use libsamplerate for resampling
-    from samplerate import Resampler
-except ImportError:
-    ## otherwise linear interpolation is used
-    HAS_RESAMPLER = False
 
 class QueueJob(object):
     def __init__(self, decoder, file, freq):
@@ -152,7 +142,6 @@ class Option:
             'compression': True, 
             'lp_cut': 0.0, 
             'hp_cut': 3000.0, 
-            'resample': 0, 
             'agc_gain': None, 
             'nb': False, 
             'nb_gate': 100, 
@@ -180,10 +169,8 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         self._start_time = None
         self._squelch = None
         self._num_channels = 2 if options.modulation == 'iq' else 1
-        self._resampler = None
 
         self.band_hop_minute = time.localtime().tm_min
-        self.tmp_dir = Config.get()['PATH']
 
     def _setup_rx_params(self):
         if self._options.no_api:
@@ -213,28 +200,8 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
                 thresh = 50
             self.set_noise_blanker(gate, thresh)
         self._output_sample_rate = self._sample_rate
-        if self._options.resample > 0:
-            self._output_sample_rate = self._options.resample
-            self._ratio = float(self._output_sample_rate)/self._sample_rate
-            logging.info('resampling from %g to %d Hz (ratio=%f)' % (self._sample_rate, self._options.resample, self._ratio))
-            if not HAS_RESAMPLER:
-                logging.info("libsamplerate not available: linear interpolation is used for low-quality resampling. "
-                             "(pip install samplerate)")
 
     def _process_audio_samples(self, seq, samples, rssi):
-        if self._options.resample > 0:
-            if HAS_RESAMPLER:
-                ## libsamplerate resampling
-                if self._resampler is None:
-                    self._resampler = Resampler(converter_type='sinc_best')
-                samples = np.round(self._resampler.process(samples, ratio=self._ratio)).astype(np.int16)
-            else:
-                ## resampling by linear interpolation
-                n  = len(samples)
-                xa = np.arange(round(n*self._ratio))/self._ratio
-                xp = np.arange(n)
-                samples = np.round(np.interp(xa,xp,samples)).astype(np.int16)
-
         self._write_samples(samples, {})
 
     def _get_output_filename(self):
@@ -304,7 +271,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         self._update_wav_header()
 
     def _print_status(self, time_to_wait):
-        bar = "".join(["|" for _ in range(0, int(np.around(self._profile.getInterval()-time_to_wait)))]) + "".join(["-" for _ in range(0, int(np.around(time_to_wait)))])
+        bar = "".join(["|" for _ in range(0, int(round(self._profile.getInterval()-time_to_wait)))]) + "".join(["-" for _ in range(0, int(round(time_to_wait)))])
         loading = ["-", "\\", "|", "/"][int(random.uniform(0, 4))]
         tab = ""
         if self._profile.getMode() == "FT4":    # ft4 takes second position of status bar
