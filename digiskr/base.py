@@ -1,3 +1,4 @@
+import math
 import random
 import threading
 import logging, os, time, sys, struct
@@ -247,17 +248,12 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
 
         # first time or timespan is reached
         if self._start_ts is None or (self._options.filename == '' and dt_reached):
-            # handle time gap (first time or after mode switch)
-            if time_to_wait > 0:
-                return
-
             # ignore first time (empty file)
             if self._start_ts is not None:
                 ## new decoding job
-                if self._start_ts is not None:
-                    self.pre_decode()
-                    ## handle band hops
-                    self.on_bandhop()
+                self.pre_decode()
+                ## handle band hops
+                self.on_bandhop()
 
             self._start_ts = now
             self._start_time = time.time()
@@ -270,12 +266,12 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         self._update_wav_header()
 
     def _print_status(self, time_to_wait):
-        bar = "".join(["|" for _ in range(0, int(round(self._profile.getInterval()-time_to_wait)))]) + "".join(["-" for _ in range(0, int(round(time_to_wait)))])
+        bar = "".join(["|" for _ in range(0, math.ceil(self._profile.getInterval()-time_to_wait))]) + "".join(["-" for _ in range(0, math.ceil(time_to_wait))])
         loading = ["-", "\\", "|", "/"][int(random.uniform(0, 4))]
         tab = ""
         if self._profile.getMode() == "FT4":    # ft4 takes second position of status bar
-            tab = "".join(["\t" for _ in range(0,3)])
-        sys.stdout.write("\r  %s%s%s:%s\r" % (loading, tab, self._profile.getMode(), bar))
+            tab = "".join(["\t" for _ in range(0,4)])
+        sys.stdout.write("\r %s[%2.2d] %s%s:[%s]\r" % (loading, time.localtime().tm_sec, tab, self._profile.getMode(), bar))
         sys.stdout.flush()
 
     @abstractmethod
