@@ -24,6 +24,7 @@ class WsjtSoundRecorder(BaseSoundRecorder):
                     self._freq = self._options.freq_hops[next]
                     self._band = self._options.band_hops[next]
                     self._profile = WsjtProfile.get(self._options.mode_hops[next])
+                    self._options.dt = self._profile.getInterval()
                     break
 
             # switching to next frequency and mode

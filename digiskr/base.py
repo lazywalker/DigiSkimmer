@@ -1,4 +1,3 @@
-from datetime import datetime
 import random
 import threading
 import logging, os, time, sys, struct
@@ -241,7 +240,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         now = time.localtime()
         sec_of_day = lambda x: 3600*x.tm_hour + 60*x.tm_min + x.tm_sec
         dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
-        time_to_wait = (60 - datetime.now().second) % self._profile.getInterval()
+        time_to_wait = (60 - now.tm_sec) % self._profile.getInterval()
 
         # print out progress bar at the buttom of screen
         self._print_status(time_to_wait)
