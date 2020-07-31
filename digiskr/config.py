@@ -3,10 +3,14 @@ import os
 import logging
 import json
 
-VERSION = '0.20.4'
+VERSION = '0.20.5'
 KIWI_USER = "digiskr_%s" % VERSION
 DECODING_SOFTWARE = "DigiSkimmer %s" % VERSION
-FT8_BANDS = {'160':1840, '80':3573, '60':5357, '40':7074, '30':10136, '20':14074, '17':18100, '15':21074, '12':24915, '10':28074, '6':50313}
+MODES = {'~': 'FT8', '#': 'JT65', '@': 'JT9', '+': 'FT4'}
+BANDS = {
+    'FT8': {'160':1840, '80':3573, '60':5357, '40':7074, '30':10136, '20':14074, '17':18100, '15':21074, '12':24915, '10':28074, '6':50313},
+    'FT4': {'80':3575, '40':7047.5, '30':10140, '20':14080, '17':18104, '15':21140, '12':24919, '10':28180, '6':50318},
+}
 
 class ConfigNotFoundException(Exception):
     pass
@@ -46,7 +50,7 @@ class Config:
 
     @staticmethod
     def _loadConfig():
-        for file in ["./settings.json", "./config.py"]:
+        for file in ["./settings.py", "./settings.json"]:
             try:
                 if file.endswith(".py"):
                     return Config._loadPythonFile(file)
@@ -88,12 +92,7 @@ class Config:
         key = "PATH"
         if key not in conf or conf[key] is None:
             return ConfigError(key, "temporary directory is not set")
-        if not os.path.exists(conf[key]):
-            return ConfigError(key, "temporary directory doesn't exist")
-        if not os.path.isdir(conf[key]):
-            return ConfigError(key, "temporary directory path is not a directory")
-        if not os.access(conf[key], os.W_OK):
-            return ConfigError(key, "temporary directory is not writable")
+            
         return None
 
     @staticmethod

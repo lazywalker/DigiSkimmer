@@ -1,8 +1,9 @@
 from datetime import datetime
+from logging import exception
 from digiskr.parser import LineParser
 import re, time
 from digiskr.pskreporter import PskReporter
-from digiskr.audio import AudioDecoderProfile
+from digiskr.base import AudioDecoderProfile
 from digiskr.config import Config
 from abc import ABC, ABCMeta, abstractmethod
 
@@ -23,7 +24,20 @@ class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
         # default when no setting is provided
         return 3
 
+    @staticmethod
+    def get(mode: str):
+        if mode == "FT8":
+            return FT8Profile()
+        elif mode == "FT4":
+            return FT4Profile()
+        else:
+            raise Exception("invaild mode!")
+    
+
 class FT8Profile(WsjtProfile):
+    def getMode(self):
+        return "FT8"
+    
     def getInterval(self):
         return 15
 
@@ -35,6 +49,23 @@ class FT8Profile(WsjtProfile):
 
     def decoder_commandline(self, file):
         return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
+
+
+class FT4Profile(WsjtProfile):
+    def getMode(self):
+        return "FT4"
+
+    def getInterval(self):
+        return 7.5
+
+    def getFileTimestampFormat(self):
+        return "%Y%m%dT%H%M%SZ"
+
+    def getLineTimestampFormat(self):
+        return "%H%M%S"
+
+    def decoder_commandline(self, file):
+        return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
 
 
 class WsprProfile(WsjtProfile):
@@ -75,17 +106,6 @@ class JT9Profile(WsjtProfile):
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
-
-
-class FT4Profile(WsjtProfile):
-    def getInterval(self):
-        return 7.5
-
-    def getFileTimestampFormat(self):
-        return "%Y%m%dT%H%M%SZ"
-
-    def decoder_commandline(self, file):
-        return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
 
 
 class WsjtParser(LineParser):
