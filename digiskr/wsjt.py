@@ -156,7 +156,10 @@ class Decoder(ABC):
 
 
 class JT9Decoder(Decoder):
-    locator_pattern = re.compile(".+[A-Z0-9]+\s([A-Z0-9]+)\s([A-R]{2}[0-9]{2})$")
+    # CQ DX BD7MQB OM92
+    locator_pattern = re.compile(".+[A-Z0-9/]+\s([A-Z0-9/]+?)\s([A-R]{2}[0-9]{2})$")
+    # HU4FUJ CV1KUS/R R NC08
+    locator_pattern2 = re.compile(".+[A-Z0-9/]+\s([A-Z0-9/]+?)\s[A-Z]\s([A-R]{2}[0-9]{2})$")
 
     def parse(self, msg, dial_freq):
         # ft8 sample
@@ -189,14 +192,18 @@ class JT9Decoder(Decoder):
         return result
 
     def parseMessage(self, msg):
-        m = JT9Decoder.locator_pattern.match(msg)
+        if msg.startswith("CQ") or len(msg.split(" ")) == 3:
+            m = JT9Decoder.locator_pattern.match(msg)
+        else:
+            m = JT9Decoder.locator_pattern2.match(msg)
+
         if m is None:
             return {}
         # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
         # likely this just means roger roger goodbye.
         if m.group(2) == "RR73":
-            return {"callsign": m.group(1)}
-        return {"callsign": m.group(1), "locator": m.group(2)}
+            return {"callsign": m.group(1).split("/")[0]}
+        return {"callsign": m.group(1).split("/")[0], "locator": m.group(2)}
 
 
 class WsprDecoder(Decoder):
