@@ -48,6 +48,8 @@ You should modify `settings.py`
 ```bash
 cp settings.py.template settings.py
 ```
+if you upgrade from below v0.20.5, please do remember to copy your settings from the old config.py into settings.py, filename changed, sorry.
+
 `STATIONS` is what kiwistation for, `SCHEDULES` is for the station/band hop, avaliable bands are:
 ```
 FT8: 10 12 15 17 20 30 40 60 80 160
