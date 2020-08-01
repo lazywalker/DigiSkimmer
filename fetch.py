@@ -18,13 +18,14 @@ from kiwi import KiwiWorker
 from digiskr import Option, Config
 import timespan
 
-conf = Config.get()
+_conf = Config.get()
 _run_event = threading.Event()
 _run_event.set()
-threading.currentThread().setName("main")
 _sr_tasks = []
+threading.currentThread().setName("main")
 
 def setup_logger():
+    debug = "DEBUG" in _conf
     try:
         # if colorlog installed (pip install colorlog)
         from colorlog import ColoredFormatter
@@ -43,13 +44,13 @@ def setup_logger():
                 'stream': {
                     'class': 'logging.StreamHandler',
                     'formatter': 'colored',
-                    'level': 'DEBUG'
+                    'level': 'DEBUG' if debug else 'INFO' 
                 },
             },
             'loggers': {
                 '': {
                     'handlers': ["stream"],
-                    'level': 'DEBUG',
+                    'level': 'DEBUG' if debug else 'INFO' ,
                 },
             },
         }
@@ -57,7 +58,7 @@ def setup_logger():
     except ImportError:
         import logging, logging.handlers
         FORMAT = "%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"
-        logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+        logging.basicConfig(level=logging.DEBUG if debug else logging.DEBUG , format=FORMAT)
 
     # log to file
     filehandler = logging.handlers.TimedRotatingFileHandler("log/digiskr.log", when="midnight", interval=1, backupCount=30)
@@ -70,7 +71,7 @@ def setup_logger():
 def setup_kiwistation(station, station_name):
     options = Option(**station)
     options.station = station_name
-    options.user = conf["KIWI_USER"] if "KIWI_USER" in conf else config.KIWI_USER
+    options.user = _conf["KIWI_USER"] if "KIWI_USER" in _conf else config.KIWI_USER
     return options
 
 def new_kiwiworker(o, band_hops_str, idx):
@@ -88,7 +89,7 @@ def new_kiwiworker(o, band_hops_str, idx):
     options.mode_hops, options.band_hops, options.freq_hops = _extract_band(band_hops_str)
     options.idx = idx
     options.timestamp = int(time.time() + os.getpid() + idx) & 0xffffffff
-    options.dir = os.path.join(conf["PATH"], options.station)
+    options.dir = os.path.join(_conf["PATH"], options.station)
     if not os.path.isdir(options.dir):
         os.makedirs(options.dir, exist_ok=True)
     else:
@@ -123,11 +124,11 @@ def match_schedule(schedules):
 
 def main():
     idx = 0
-    schedule = match_schedule(conf["SCHEDULES"])
+    schedule = match_schedule(_conf["SCHEDULES"])
     if schedule is not None:
         logging.info("current schedule is: %s", schedule)
         for (st, bands) in schedule.items():
-            options = setup_kiwistation(conf["STATIONS"][st], st)
+            options = setup_kiwistation(_conf["STATIONS"][st], st)
             for band in bands:
                 _sr_tasks.append(new_kiwiworker(options, band, idx))
                 idx += 1
@@ -145,7 +146,7 @@ def main():
         while _run_event.is_set():
             time.sleep(1)
 
-            schedule = match_schedule(conf["SCHEDULES"])
+            schedule = match_schedule(_conf["SCHEDULES"])
             if schedule is not None:
                 # logging.debug('current schedule is: %s', schedule)
                 ## remove out-of-date tasks
@@ -171,7 +172,7 @@ def main():
                                 exsit_task = True
                                 break
                         if not exsit_task:
-                            options = setup_kiwistation(conf["STATIONS"][st], st)
+                            options = setup_kiwistation(_conf["STATIONS"][st], st)
                             task = new_kiwiworker(options, band, len(_sr_tasks)+1)
                             task.start()
                             _sr_tasks.append(task)
