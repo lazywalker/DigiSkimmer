@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ## -*- python -*-
 #
 # Copyright(c) 2020 BD7MQB Michael Choi <bd7mqb@qq.com>
@@ -82,7 +82,7 @@ def new_kiwiworker(o, band_hops_str, idx):
         local = str(band_hops_str).split('|')
         mode_hops = [config.MODES[b[-1]] if b[-1] in config.MODES else "FT8" for b in local]       # ['FT8', 'FT4', 'FT8', 'FT8']
         band_hops = [b[:-1] if b[-1] not in [str(n) for n in range(0,9)] else b for b in local]    # ['20', '30', '40', '60']
-        freq_hops = [config.BANDS[mode_hops[i]][b] for i,b in enumerate(band_hops)]                # [14074, 10140, 7074, 5357]
+        freq_hops = [config.BANDS[mode_hops[i]][b] * 1000 for i,b in enumerate(band_hops)]         # [14074, 10140, 7074, 5357] in KHz
         return mode_hops, band_hops, freq_hops
 
     options.band_hops_str = band_hops_str
