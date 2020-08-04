@@ -1,4 +1,3 @@
-from digiskr import wsprnet
 from digiskr.wsjt import WsjtParser, WsjtProfile
 from digiskr.config import Config
 from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, QueueJob
