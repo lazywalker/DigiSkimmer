@@ -24,6 +24,7 @@ class QueueJob(object):
         try:
             # logging.debug("deleting file %s" % self.file)
             os.unlink(self.file)
+            pass
         except FileNotFoundError:
             logging.warning("file %s not found", self.file)
             pass
@@ -207,13 +208,12 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
     def _get_output_filename(self):
         if self._options.test_mode:
             return os.devnull
-        station = '' if self._options.station is None else '_'+ self._options.station
 
         if self._options.filename != '':
-            filename = '%s%s.wav' % (self._options.filename, station)
+            filename = '%s-%s.wav' % (self._options.filename, self._profile.getMode())
         else:
             ts  = time.strftime(self._profile.getFileTimestampFormat(), self._start_ts)
-            filename = '%s_%d%s_%s.wav' % (ts, int(self._freq * 1000), station, self._profile.getMode())
+            filename = '%s.wav' % ts
         if self._options.dir is not None:
             filename = '%s/%s' % (self._options.dir, filename)
         return filename
@@ -241,7 +241,10 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         now = time.localtime()
         sec_of_day = lambda x: 3600*x.tm_hour + 60*x.tm_min + x.tm_sec
         dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
-        time_to_wait = (60 - now.tm_sec) % self._profile.getInterval()
+        if self._profile.getMode() == "WSPR":
+            time_to_wait = (60 - now.tm_sec) % self._profile.getInterval() + (60 if now.tm_min %2 == 0 else 0) # odd minute
+        else:
+            time_to_wait = (60 - now.tm_sec) % self._profile.getInterval()
 
         # print out progress bar at the buttom of screen
         self._print_status(time_to_wait)
@@ -266,9 +269,13 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         self._update_wav_header()
 
     def _print_status(self, time_to_wait):
-        tab = ""
         if self._profile.getMode() == "FT4":    # ft4 takes second position of status bar
-            tab = "".join(["\t" for _ in range(0,3)])
+            pos = 1
+        elif self._profile.getMode() == "WSPR":    # wspr takes thrid position of status bar
+            pos = 2
+        else:
+            pos = 0
+        tab = "".join(["\t" for _ in range(0,3*pos)])
             
         bar = tab + "".join([
                 self._profile.getMode(),

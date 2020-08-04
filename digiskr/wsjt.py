@@ -30,6 +30,8 @@ class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
             return FT8Profile()
         elif mode == "FT4":
             return FT4Profile()
+        elif mode == "WSPR":
+            return WsprProfile()
         else:
             raise Exception("invaild mode!")
     
@@ -42,7 +44,7 @@ class FT8Profile(WsjtProfile):
         return 15
 
     def getFileTimestampFormat(self):
-        return "%Y%m%dT%H%M%SZ"
+        return "%y%m%d_%H%M%S"
 
     def getLineTimestampFormat(self):
         return "%H%M%S"
@@ -59,7 +61,7 @@ class FT4Profile(WsjtProfile):
         return 7.5
 
     def getFileTimestampFormat(self):
-        return "%Y%m%dT%H%M%SZ"
+        return "%y%m%d_%H%M%S"
 
     def getLineTimestampFormat(self):
         return "%H%M%S"
@@ -69,11 +71,14 @@ class FT4Profile(WsjtProfile):
 
 
 class WsprProfile(WsjtProfile):
+    def getMode(self):
+        return "WSPR"
+
     def getInterval(self):
         return 120
 
     def getFileTimestampFormat(self):
-        return "%Y%m%dT%H%MZ"
+        return "%y%m%d_%H%M"
 
     def getLineTimestampFormat(self):
         return "%H%M"
@@ -199,8 +204,6 @@ class JT9Decoder(Decoder):
 
         if m is None:
             return {}
-        # this is a valid locator in theory, but it's somewhere in the arctic ocean, near the north pole, so it's very
-        # likely this just means roger roger goodbye.
         if m.group(2) == "RR73":
             return {"callsign": m.group(1).split("/")[0]}
         return {"callsign": m.group(1).split("/")[0], "locator": m.group(2)}

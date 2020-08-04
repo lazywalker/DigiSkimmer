@@ -1,3 +1,4 @@
+from digiskr import wsprnet
 from digiskr.wsjt import WsjtParser, WsjtProfile
 from digiskr.config import Config
 from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, QueueJob
@@ -52,14 +53,14 @@ class WsjtSoundRecorder(BaseSoundRecorder):
             close_fds=True,
             )
         
+        # No need for now, since WSJT-X read time from filename
+        # filename = os.path.basename(job.file)
+        # file_t = time.strptime(filename.split('-')[-1][:-4], self._profile.getFileTimestampFormat())   # Get time from filename like 200803_152201.wav
+        # receive_ts = time.strftime(self._profile.getLineTimestampFormat(), file_t)
         messages = []
-        filename = os.path.basename(job.file)
-        file_t = time.strptime(filename.split('_')[0], self._profile.getFileTimestampFormat())
-        receive_ts = time.strftime(self._profile.getLineTimestampFormat(), file_t)
-
         for line in decoder.stdout:
-            line = line.replace("000000".encode("utf-8"), receive_ts.encode("utf-8"))
-            logging.log(logging.NOTSET, line)
+            # line = line.replace("000000".encode("utf-8"), receive_ts.encode("utf-8")) # No need for now, since WSJT-X read time from filename
+            logging.log(logging.DEBUG, line)
             messages.append((job.freq, line))
         
         # set grid & antenna information from kiwi station, if we can't found them at config

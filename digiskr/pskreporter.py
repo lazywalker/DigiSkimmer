@@ -12,7 +12,7 @@ class PskReporter(object):
     sharedInstance = {}
     creationLock = threading.Lock()
     interval = 15
-    supportedModes = ["FT8", "FT4", "JT9", "JT65", "JS8"]
+    supportedModes = ["FT8", "FT4", "JT9", "JT65", "JS8", "WSPR"]
 
     @staticmethod
     def getSharedInstance(station: str):
@@ -29,6 +29,7 @@ class PskReporter(object):
         self.spots = []
         self.spotLock = threading.Lock()
         self.uploader = Uploader(station)
+        self.station = station
         self.timer = None
 
     def scheduleNextUpload(self):
@@ -37,6 +38,7 @@ class PskReporter(object):
         delay = PskReporter.interval + random.uniform(0, 15)
         logging.info("scheduling next pskreporter upload in %f seconds", delay)
         self.timer = threading.Timer(delay, self.upload)
+        self.timer.setName("psk.uploader-%s", self.station)
         self.timer.start()
 
     def spotEquals(self, s1, s2):
@@ -60,19 +62,16 @@ class PskReporter(object):
             with self.spotLock:
                 spots = self.spots
                 self.spots = []
-
             if spots:
                 self.uploader.upload(spots)
         except Exception:
             logging.exception("Failed to upload spots")
-
         self.timer = None
-        self.scheduleNextUpload()
 
     def cancelTimer(self):
         if self.timer:
             self.timer.cancel()
-        self.timer.join()
+            self.timer.join()
         self.timer = None
 
 

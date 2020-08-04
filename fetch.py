@@ -89,11 +89,13 @@ def new_kiwiworker(o, band_hops_str, idx):
     options.mode_hops, options.band_hops, options.freq_hops = _extract_band(band_hops_str)
     options.idx = idx
     options.timestamp = int(time.time() + os.getpid() + idx) & 0xffffffff
-    options.dir = os.path.join(_conf["PATH"], options.station)
-    if not os.path.isdir(options.dir):
-        os.makedirs(options.dir, exist_ok=True)
-    else:
-        os.popen("rm -f %s/*.wav" % options.dir)
+    # tmp dirs preparation
+    for i, mode in enumerate(options.mode_hops):
+        options.dir = os.path.join(_conf["PATH"], options.station, mode, options.band_hops[i])
+        if not os.path.isdir(options.dir):
+            os.makedirs(options.dir, exist_ok=True)
+        else:
+            os.popen("rm -f %s/*" % options.dir)
 
     worker = KiwiWorker(
             target=WsjtSoundRecorder(options),
