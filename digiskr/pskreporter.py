@@ -38,7 +38,7 @@ class PskReporter(object):
         delay = PskReporter.interval + random.uniform(0, 15)
         logging.info("scheduling next pskreporter upload in %f seconds", delay)
         self.timer = threading.Timer(delay, self.upload)
-        self.timer.setName("psk.uploader-%s", self.station)
+        self.timer.setName("psk.uploader-%s" % self.station)
         self.timer.start()
 
     def spotEquals(self, s1, s2):
