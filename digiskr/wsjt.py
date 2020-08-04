@@ -221,7 +221,7 @@ class WsprDecoder(Decoder):
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),
             "dt": float(msg[9:13]),
-            "freq": dial_freq + int(float(msg[14:24]) * 1e6),
+            "freq": dial_freq * 1000 + int(float(msg[14:24]) * 1e6),
             "drift": int(msg[25:28]),
             "mode": "WSPR",
             "msg": wsjt_msg,
