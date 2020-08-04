@@ -171,7 +171,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         self._squelch = None
         self._num_channels = 2 if options.modulation == 'iq' else 1
 
-        self.band_hop_minute = time.localtime().tm_min
+        self.band_hop_ts = time.time()
 
     def _setup_rx_params(self):
         if self._options.no_api:

@@ -1,3 +1,4 @@
+# from digiskr import wsprnet
 from digiskr.wsjt import WsjtParser, WsjtProfile
 from digiskr.config import Config
 from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, QueueJob
@@ -16,8 +17,9 @@ class WsjtSoundRecorder(BaseSoundRecorder):
 
     def on_bandhop(self):
         ## if we are hitting a new minute
-        if len(self._options.band_hops) > 1 and self.band_hop_minute != time.localtime().tm_min:
-            self.band_hop_minute = time.localtime().tm_min
+        delta = self._profile.getInterval() if self._profile.getInterval() >= 60 else 60
+        if len(self._options.band_hops) > 1 and time.time() - self.band_hop_ts >= delta and time.localtime().tm_sec == 0:
+            self.band_hop_ts = time.time()
             for i, f in enumerate(self._options.freq_hops):
                 if f == self._freq:
                     next = i+1 if i < len(self._options.freq_hops)-1 else 0
@@ -71,6 +73,9 @@ class WsjtSoundRecorder(BaseSoundRecorder):
         ## parse raw messages
         self._parser.parse(messages)
         
+        # if self._profile.getMode() == "WSPR":
+        #     wsprnet.Uploader(self._options.station, self._band).upload()
+
         try:
             rc = decoder.wait(timeout=10)
             if rc != 0:
