@@ -36,7 +36,7 @@ class PskReporter(object):
         if self.timer:
             return
         delay = PskReporter.interval + random.uniform(0, 15)
-        logging.info("scheduling next pskreporter upload in %f seconds", delay)
+        logging.info("scheduling next pskreporter upload in %3.2f seconds", delay)
         self.timer = threading.Timer(delay, self.upload)
         self.timer.setName("psk.uploader-%s" % self.station)
         self.timer.start()

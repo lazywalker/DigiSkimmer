@@ -1,4 +1,4 @@
-# from digiskr import wsprnet
+from digiskr import wsprnet
 from digiskr.wsjt import WsjtParser, WsjtProfile
 from digiskr.config import Config
 from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, QueueJob
@@ -13,6 +13,8 @@ class WsjtSoundRecorder(BaseSoundRecorder):
         self._parser = WsjtParser(options.station)
         
         options.dt = self._profile.getInterval()
+        options.hp_cut = 2500.0 if self._profile.getMode() == "WSPR" else 3000.0
+
         super(WsjtSoundRecorder, self).__init__(options)
 
     def on_bandhop(self):
@@ -73,13 +75,13 @@ class WsjtSoundRecorder(BaseSoundRecorder):
         ## parse raw messages
         self._parser.parse(messages)
         
-        # if self._profile.getMode() == "WSPR":
-        #     wsprnet.Uploader(self._options.station, self._band).upload()
-
         try:
             rc = decoder.wait(timeout=10)
             if rc != 0:
                 logging.warning("decoder return code: %i", rc)
+            # elif self._profile.getMode() == "WSPR":
+            #     wsprnet.Uploader(self._options.station, self._band).upload()
+
         except subprocess.TimeoutExpired:
             logging.warning("subprocess (pid=%i}) did not terminate correctly; sending kill signal.", decoder.pid)
             decoder.kill()

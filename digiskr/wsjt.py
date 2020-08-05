@@ -1,5 +1,5 @@
 from datetime import datetime
-from logging import exception
+from digiskr.wsprnet import Wsprnet
 from digiskr.parser import LineParser
 import re, time
 from digiskr.pskreporter import PskReporter
@@ -143,6 +143,9 @@ class WsjtParser(LineParser):
                 if "mode" in out:
                     if "callsign" in out and "locator" in out:
                         PskReporter.getSharedInstance(self.getStation()).spot(out)
+                        # upload to wsprnet aswell
+                        if out["mode"] == "WSPR":
+                            Wsprnet.getSharedInstance(self.getStation()).spot(out)
 
             except ValueError:
                 logging.exception("error while parsing wsjt message")
@@ -210,13 +213,17 @@ class JT9Decoder(Decoder):
 
 
 class WsprDecoder(Decoder):
-    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\\s([A-R]{2}[0-9]{2})\\s([0-9]+)")
+    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\s([A-R]{2}[0-9]{2})\s([0-9]+)")
 
     def parse(self, msg, dial_freq):
         # wspr sample
         # '2600 -24  0.4   0.001492 -1  G8AXA JO01 33'
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
         wsjt_msg = msg[29:].strip()
+
+        # TODO: No idea what sync_quality used for but we need to add this field to bypass the upload check,
+        # it seems to useless because the static files downloaded from wsprnet.org doesn't contain this field.
+        # i don't want to read it from wspr_spots.txt so i simply pick a random value :)
         result = {
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),
@@ -224,6 +231,7 @@ class WsprDecoder(Decoder):
             "freq": dial_freq * 1000 + int(float(msg[14:24]) * 1e6),
             "drift": int(msg[25:28]),
             "mode": "WSPR",
+            "sync_quality": 0.3,
             "msg": wsjt_msg,
         }
         result.update(self.parseMessage(wsjt_msg))
@@ -233,4 +241,5 @@ class WsprDecoder(Decoder):
         m = WsprDecoder.wspr_splitter_pattern.match(msg)
         if m is None:
             return {}
-        return {"callsign": m.group(1), "locator": m.group(2)}
+        # TODO: handle msg type "<G0EKQ>        IO83PI 37"
+        return {"callsign": m.group(1), "locator": m.group(2), "watt": int(m.group(3))}

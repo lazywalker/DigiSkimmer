@@ -7,6 +7,7 @@
 
 from digiskr import config, DecoderQueue
 from digiskr.pskreporter import PskReporter
+from digiskr.wsprnet import Wsprnet
 from digiskr.audio import WsjtSoundRecorder
 import logging, os, sys, time, threading
 import gc
@@ -107,6 +108,7 @@ def new_kiwiworker(o, band_hops_str, idx):
 def cleanup():
     _run_event.clear()
     PskReporter.stop()
+    Wsprnet.stop()
     [w.stop() for w in DecoderQueue.instance().workers]
     [r.stop() for r in _sr_tasks]
     [t.join() for t in threading.enumerate() if t is not threading.currentThread()]
