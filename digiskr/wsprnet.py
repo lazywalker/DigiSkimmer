@@ -1,3 +1,4 @@
+from logging import exception
 import os
 import logging
 import threading
@@ -92,7 +93,7 @@ class Uploader(object):
         self.station["name"] = station
         self.tmpdir = tmpdir
         self.logdir = Config.logdir()
-        self._event = threading.Event
+        self._event = threading.Event()
 
     def upload(self, spots):
         logging.warning("uploading %i spots to wsprnet", len(spots))
@@ -150,8 +151,13 @@ class Uploader(object):
                     break
                 else:
                     continue
+            except requests.exceptions.ReadTimeout as e:
+                logging.error("Wsprnet read timeout error %s", e)
+                logging.debug("delete %s", allmet)
+                os.unlink(allmet)
             finally:
                 if resp is not None and (resp.status_code == 200 or retries > max_retries):
+                    logging.debug("delete %s", allmet)
                     os.unlink(allmet)
 
     def save(self, spot_lines, file):
