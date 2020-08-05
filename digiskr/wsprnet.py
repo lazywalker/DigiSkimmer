@@ -124,13 +124,13 @@ class Uploader(object):
         params = {"call": self.station["callsign"],
                   "grid": self.station["grid"]}
 
-        max_retries = 3
+        max_retries = 5
         retries = 0
         resp = None
 
         while True:
             try:
-                requests.adapters.DEFAULT_RETRIES = 3
+                requests.adapters.DEFAULT_RETRIES = 5
                 s = requests.session()
                 s.keep_alive = False
                 resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=(60, 60))
@@ -144,21 +144,21 @@ class Uploader(object):
                 logging.error("Wsprnet connection error %s", e)
                 logging.warning("try again ...")
                 self._event.wait(timeout=10)
-                retries += 1
-                if retries > max_retries:                    
+                if retries >= max_retries:                    
                     logging.warning("Saving %d spot to wspr_upload_fail.log", len(spot_lines))
                     self.save(spot_lines, os.path.join(self.logdir, "wspr_upload_fail.log"))
                     break
                 else:
+                    retries += 1
                     continue
             except requests.exceptions.ReadTimeout as e:
                 logging.error("Wsprnet read timeout error %s", e)
                 logging.debug("delete %s", allmet)
                 os.unlink(allmet)
-            finally:
-                if resp is not None and (resp.status_code == 200 or retries > max_retries):
-                    logging.debug("delete %s", allmet)
-                    os.unlink(allmet)
+            # finally:
+            #     if resp is not None and (resp.status_code == 200 or retries > max_retries):
+            #         logging.debug("delete %s", allmet)
+            #         os.unlink(allmet)
 
     def save(self, spot_lines, file):
         with open(file, "a") as file:
