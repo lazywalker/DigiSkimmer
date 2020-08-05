@@ -1,6 +1,7 @@
 import os
 import logging
 import threading
+from threading import Thread
 import time
 import random
 from functools import reduce
@@ -74,6 +75,8 @@ class Wsprnet(object):
         except Exception:
             logging.exception("Failed to upload spots")
         self.timer = None
+        # new upload thread to avoid hang
+        self.scheduleNextUpload()
 
     def cancelTimer(self):
         if self.timer:
@@ -89,6 +92,7 @@ class Uploader(object):
         self.station["name"] = station
         self.tmpdir = tmpdir
         self.logdir = Config.logdir()
+        self._event = threading.Event
 
     def upload(self, spots):
         logging.warning("uploading %i spots to wsprnet", len(spots))
@@ -119,23 +123,37 @@ class Uploader(object):
         params = {"call": self.station["callsign"],
                   "grid": self.station["grid"]}
 
-        try:
-            requests.adapters.DEFAULT_RETRIES = 5
-            s = requests.session()
-            s.keep_alive = False
-            resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=(15, 30))
+        max_retries = 3
+        retries = 0
+        resp = None
 
-            # if resp.status_code == 200:
-            #     os.unlink(allmet)
-            # print(response.text)
-        # TODO: handle with retry
-        except requests.ConnectionError as e:
-            logging.error("Wsprnet connection error %s", e)
-            logging.warning("Saving %d spot to wspr_upload_fail.log", len(spot_lines))
-            self.save(spot_lines, os.path.join(self.logdir, "wspr_upload_fail.log"))
-        finally:
-            os.unlink(allmet)
+        while True:
+            try:
+                requests.adapters.DEFAULT_RETRIES = 5
+                s = requests.session()
+                s.keep_alive = False
+                resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=(15, 60))
+
+                if resp.status_code == 200:
+                    break
+                #     os.unlink(allmet)
+                # print(response.text)
+            # TODO: handle with retry
+            except requests.ConnectionError or requests.exceptions.Timeout as e:
+                logging.error("Wsprnet connection error %s", e)
+                logging.warning("try again ...")
+                self._event.wait(timeout=10)
+                retries += 1
+                if retries > max_retries:                    
+                    logging.warning("Saving %d spot to wspr_upload_fail.log", len(spot_lines))
+                    self.save(spot_lines, os.path.join(self.logdir, "wspr_upload_fail.log"))
+                    break
+                else:
+                    continue
+            finally:
+                if resp is not None and (resp.status_code == 200 or retries > max_retries):
+                    os.unlink(allmet)
 
     def save(self, spot_lines, file):
-        with open(file, "w+") as file:
+        with open(file, "a") as file:
             file.writelines(spot_lines)
