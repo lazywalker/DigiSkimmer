@@ -130,10 +130,10 @@ class Uploader(object):
 
         while True:
             try:
-                requests.adapters.DEFAULT_RETRIES = 5
+                requests.adapters.DEFAULT_RETRIES = 3
                 s = requests.session()
                 s.keep_alive = False
-                resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=(15, 60))
+                resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=(60, 60))
 
                 if resp.status_code == 200:
                     break
