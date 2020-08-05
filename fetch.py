@@ -91,7 +91,7 @@ def new_kiwiworker(o, band_hops_str, idx):
     options.timestamp = int(time.time() + os.getpid() + idx) & 0xffffffff
     # tmp dirs preparation
     for i, mode in enumerate(options.mode_hops):
-        options.dir = os.path.join(_conf["PATH"], options.station, mode, options.band_hops[i])
+        options.dir = os.path.join(Config.tmpdir(), options.station, mode, options.band_hops[i])
         if not os.path.isdir(options.dir):
             os.makedirs(options.dir, exist_ok=True)
         else:

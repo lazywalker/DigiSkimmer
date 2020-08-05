@@ -94,9 +94,8 @@ class Config:
 
     @staticmethod
     def checkTempDirectory(conf: dict):
-        key = "PATH"
-        if key not in conf or conf[key] is None:
-            return ConfigError(key, "temporary directory is not set")
+        if "TMP_PATH" not in conf or conf["TMP_PATH"] is None:
+            return ConfigError("TMP_PATH", "temporary directory is not set")
             
         return None
 
@@ -111,3 +110,14 @@ class Config:
                 return ConfigError(key, "%s->callsign is not set" % k)
 
         return None
+
+    @staticmethod
+    def tmpdir():
+        conf = Config.get()
+        return conf["TMP_PATH"] if "TMP_PATH" in conf else "./tmp/digiskr/"
+
+    @staticmethod
+    def logdir():
+        conf = Config.get()
+        return conf["LOG_PATH"] if "LOG_PATH" in conf else "./log/"
+        

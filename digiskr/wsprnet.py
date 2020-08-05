@@ -33,8 +33,7 @@ class Wsprnet(object):
         self.timer = None
 
         # prepare tmpdir for uploader
-        self.tmpdir = os.path.join(
-            Config.get()["PATH"], station, "WSPR", "wsprnet.uploader")
+        self.tmpdir = os.path.join(Config.tmpdir(), station, "WSPR", "wsprnet.uploader")
         os.makedirs(self.tmpdir, exist_ok=True)
 
         self.uploader = Uploader(station, self.tmpdir)
@@ -89,16 +88,17 @@ class Uploader(object):
         self.station = Config.get()["STATIONS"][station]
         self.station["name"] = station
         self.tmpdir = tmpdir
+        self.logdir = Config.logdir()
 
     def upload(self, spots):
         logging.warning("uploading %i spots to wsprnet", len(spots))
 
         allmet = os.path.join(self.tmpdir, "allmet_%d.txt" % (
             int(time.time() + random.uniform(0, 99)) & 0xffff))
-        lines = []
+        spot_lines = []
         for spot in spots:
             # 200804 1916  0.26 -18  0.96   7.0401756 JA5NVN         PM74   37  0
-            lines.append("%s  %1.2f %d  %1.2f   %2.7f %s         %s   %d  %d\n" % (
+            spot_lines.append("%s  %1.2f %d  %1.2f   %2.7f %s         %s   %d  %d\n" % (
                 # wsprnet needs GMT time
                 time.strftime("%y%m%d %H%M", time.gmtime(spot["timestamp"])),
                 spot["sync_quality"],
@@ -112,8 +112,8 @@ class Uploader(object):
                 spot["drift"]
             ))
 
-        with open(allmet, "w") as file:
-            file.writelines(lines)
+        self.save(spot_lines, allmet)
+        self.save(spot_lines, os.path.join(self.logdir, "wspr_all.log"))
 
         postfiles = {"allmept": open(allmet, "r")}
         params = {"call": self.station["callsign"],
@@ -125,11 +125,17 @@ class Uploader(object):
             s.keep_alive = False
             resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=(15, 30))
 
-            if resp.status_code == 200:
-                os.unlink(allmet)
+            # if resp.status_code == 200:
+            #     os.unlink(allmet)
             # print(response.text)
         # TODO: handle with retry
         except requests.ConnectionError as e:
             logging.error("Wsprnet connection error %s", e)
-        except requests.exceptions.Timeout as e:
-            logging.error("Wsprnet connection timeout %s", e)
+            logging.warning("Saving %d spot to wspr_upload_fail.log", len(spot_lines))
+            self.save(spot_lines, os.path.join(self.logdir, "wspr_upload_fail.log"))
+        finally:
+            os.unlink(allmet)
+
+    def save(self, spot_lines, file):
+        with open(file, "w+") as file:
+            file.writelines(spot_lines)

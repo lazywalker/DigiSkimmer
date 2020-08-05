@@ -1,5 +1,5 @@
 
-PATH = './tmp/digiskr/'                             ## tmp directory to put wave files and etc.
+TMP_PATH = './tmp/digiskr/'                         ## tmp directory to put wave files and etc.
 
 WSJTX = {
     'decoding_depth_global': 3,                     ## global settings
