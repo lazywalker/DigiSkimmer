@@ -129,7 +129,7 @@ class Uploader(object):
                 os.unlink(allmet)
             # print(response.text)
         # TODO: handle with retry
-        except requests.ConnectionError:
-            logging.exception("Wsprnet connection error")
-        except requests.exceptions.Timeout:
-            logging.exception("Wsprnet connection timeout")
+        except requests.ConnectionError as e:
+            logging.error("Wsprnet connection error %s", e)
+        except requests.exceptions.Timeout as e:
+            logging.error("Wsprnet connection timeout %s", e)
