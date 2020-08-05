@@ -77,7 +77,6 @@ def setup_kiwistation(station, station_name):
 
 def new_kiwiworker(o, band_hops_str, idx):
     options = copy(o)
-    band_hops = str(band_hops_str).split('|')
 
     def _extract_band(band_hops_str):
         local = str(band_hops_str).split('|')

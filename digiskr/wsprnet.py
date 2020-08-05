@@ -123,7 +123,7 @@ class Uploader(object):
             requests.adapters.DEFAULT_RETRIES = 5
             s = requests.session()
             s.keep_alive = False
-            resp = s.post("http://wsprnet.org/post", files=postfiles, params=params)
+            resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=(15, 30))
 
             if resp.status_code == 200:
                 os.unlink(allmet)
