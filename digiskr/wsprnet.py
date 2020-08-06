@@ -134,7 +134,7 @@ class Uploader(object):
                 resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=300)
 
                 if resp.status_code == 200:
-                    print(resp.text)
+                    #print(resp.text)
                     break
                 
             # TODO: handle with retry
