@@ -1,4 +1,3 @@
-from logging import exception
 import os
 import logging
 import threading
@@ -14,7 +13,8 @@ import requests
 class Wsprnet(object):
     sharedInstance = {}
     creationLock = threading.Lock()
-    interval = 15
+    # avoid the two minute boundaries 
+    interval = 45
     supportedModes = ["WSPR"]
 
     @staticmethod
@@ -73,11 +73,9 @@ class Wsprnet(object):
                 self.spots = []
             if spots:
                 self.uploader.upload(spots)
+                self.timer = None
         except Exception:
             logging.exception("Failed to upload spots")
-        self.timer = None
-        # new upload thread to avoid hang
-        self.scheduleNextUpload()
 
     def cancelTimer(self):
         if self.timer:
@@ -133,12 +131,12 @@ class Uploader(object):
                 requests.adapters.DEFAULT_RETRIES = 5
                 s = requests.session()
                 s.keep_alive = False
-                resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=(60, 60))
+                resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=300)
 
                 if resp.status_code == 200:
+                    print(resp.text)
                     break
-                #     os.unlink(allmet)
-                # print(response.text)
+                
             # TODO: handle with retry
             except requests.ConnectionError or requests.exceptions.Timeout as e:
                 logging.error("Wsprnet connection error %s", e)
@@ -153,12 +151,10 @@ class Uploader(object):
                     continue
             except requests.exceptions.ReadTimeout as e:
                 logging.error("Wsprnet read timeout error %s", e)
-                logging.debug("delete %s", allmet)
-                os.unlink(allmet)
-            # finally:
-            #     if resp is not None and (resp.status_code == 200 or retries > max_retries):
-            #         logging.debug("delete %s", allmet)
-            #         os.unlink(allmet)
+                break
+        
+        logging.debug("delete %s", allmet)
+        os.unlink(allmet)
 
     def save(self, spot_lines, file):
         with open(file, "a") as file:
