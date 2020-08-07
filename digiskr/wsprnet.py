@@ -36,9 +36,11 @@ class Wsprnet(object):
 
         # prepare tmpdir for uploader
         self.tmpdir = os.path.join(Config.tmpdir(), station, "WSPR", "wsprnet.uploader")
+        self.logdir = os.path.join(Config.logdir(), "spots", "wsprnet", station)
         os.makedirs(self.tmpdir, exist_ok=True)
+        os.makedirs(self.logdir, exist_ok=True)
 
-        self.uploader = Uploader(station, self.tmpdir)
+        self.uploader = Uploader(station, self.tmpdir, self.logdir)
 
     def scheduleNextUpload(self):
         if self.timer:
@@ -86,12 +88,12 @@ class Wsprnet(object):
 
 class Uploader(object):
 
-    def __init__(self, station: str, tmpdir):
+    def __init__(self, station: str, tmpdir, logdir):
         self.station = Config.get()["STATIONS"][station]
         self.station["name"] = station
         self.tmpdir = tmpdir
-        self.logdir = Config.logdir()
-        self._event = threading.Event()
+        self.logdir = logdir
+        self.event = threading.Event()
 
     def upload(self, spots):
         logging.warning("uploading %i spots to wsprnet", len(spots))
@@ -100,8 +102,8 @@ class Uploader(object):
             int(time.time() + random.uniform(0, 99)) & 0xffff))
         spot_lines = []
         for spot in spots:
-            # 200804 1916  0.26 -18  0.96   7.0401756 JA5NVN         PM74   37  0
-            spot_lines.append("%s  %1.2f %d  %1.2f   %2.7f %s         %s   %d  %d\n" % (
+            # 200804 1916  0.26 -18  0.96   7.040176 JA5NVN         PM74   37  0
+            spot_lines.append("%s  %1.2f %d  %1.2f   %2.6f %s         %s   %d  %d\n" % (
                 # wsprnet needs GMT time
                 time.strftime("%y%m%d %H%M", time.gmtime(spot["timestamp"])),
                 spot["sync_quality"],
@@ -116,13 +118,12 @@ class Uploader(object):
             ))
 
         self.save(spot_lines, allmet)
-        self.save(spot_lines, os.path.join(self.logdir, "wspr_all.log"))
+        self.saveall(spot_lines)
 
         postfiles = {"allmept": open(allmet, "r")}
-        params = {"call": self.station["callsign"],
-                  "grid": self.station["grid"]}
+        params = {"call": self.station["callsign"], "grid": self.station["grid"]}
 
-        max_retries = 5
+        max_retries = 3
         retries = 0
         resp = None
 
@@ -134,28 +135,42 @@ class Uploader(object):
                 resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=300)
 
                 if resp.status_code == 200:
-                    #print(resp.text)
+                    # if we can not find the text of success
+                    if resp.text.find("spot(s) added") == -1:
+                        self.savefail(spot_lines)
                     break
                 
             # TODO: handle with retry
             except requests.ConnectionError or requests.exceptions.Timeout as e:
                 logging.error("Wsprnet connection error %s", e)
-                logging.warning("try again ...")
-                self._event.wait(timeout=10)
                 if retries >= max_retries:                    
                     logging.warning("Saving %d spot to wspr_upload_fail.log", len(spot_lines))
-                    self.save(spot_lines, os.path.join(self.logdir, "wspr_upload_fail.log"))
+                    self.savefail(spot_lines)
                     break
                 else:
                     retries += 1
+                    logging.warning("wait 10s to try again...->%d", retries)
+                    self.event.wait(timeout=10)
                     continue
             except requests.exceptions.ReadTimeout as e:
                 logging.error("Wsprnet read timeout error %s", e)
+                self.savefail(spot_lines)
                 break
         
         logging.debug("delete %s", allmet)
         os.unlink(allmet)
 
+    def saveall(self, spot_lines):
+        self.savelog(spot_lines, "ALL")
+
+    def savefail(self, spot_lines):
+        self.savelog(spot_lines, "FAIL")
+
+    def savelog(self, spot_lines, type):
+        if "LOG_SPOTS" in Config.get() and Config.get()["LOG_SPOTS"]:
+            file = os.path.join(self.logdir, "%s_%s.log" % (type, time.strftime("%y%m%d", time.localtime())))
+            self.save(spot_lines, file)
+
     def save(self, spot_lines, file):
-        with open(file, "a") as file:
-            file.writelines(spot_lines)
+        with open(file, "a") as f:
+            f.writelines(spot_lines)

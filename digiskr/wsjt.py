@@ -134,10 +134,11 @@ class WsjtParser(LineParser):
                 else:
                     decoder = WsprDecoder()
                 out = decoder.parse(msg, freq)
-                logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%d %s : %s %s", self.getStation(), 
+                logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%2.6f %s : %s %s", 
+                    self.getStation(), 
                     out["mode"], 
-                    time.strftime("%m%d%H%M%S",  time.localtime(out["timestamp"])),
-                    out["db"], out["dt"], out["freq"], out["msg"], 
+                    time.strftime("%H%M%S",  time.localtime(out["timestamp"])),
+                    out["db"], out["dt"], out["freq"]/1e6, out["msg"], 
                     out["callsign"] if "callsign" in out else "-", 
                     out["locator"] if "locator" in out else "")
                 if "mode" in out:

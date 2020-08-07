@@ -1,3 +1,4 @@
+import os
 from digiskr.config import Config
 from digiskr import config
 import logging
@@ -8,11 +9,14 @@ import socket
 from functools import reduce
 from operator import and_
 
+_modes = lambda d: dict([(v,k) for (k,v) in d.items()])
+
 class PskReporter(object):
     sharedInstance = {}
     creationLock = threading.Lock()
     interval = 15
-    supportedModes = ["FT8", "FT4", "JT9", "JT65", "JS8", "WSPR"]
+
+    supportedModes = _modes(config.MODES)
 
     @staticmethod
     def getSharedInstance(station: str):
@@ -32,6 +36,10 @@ class PskReporter(object):
         self.station = station
         self.timer = None
 
+        # prepare logdir for uploader
+        self.logdir = os.path.join(Config.logdir(), "spots", "pskreport", station)
+        os.makedirs(self.logdir, exist_ok=True)
+
     def scheduleNextUpload(self):
         if self.timer:
             return
@@ -47,7 +55,7 @@ class PskReporter(object):
         return reduce(and_, map(lambda key: s1[key] == s2[key], keys))
 
     def spot(self, spot):
-        if not spot["mode"] in PskReporter.supportedModes:
+        if not spot["mode"] in PskReporter.supportedModes.keys():
             return
         with self.spotLock:
             if any(x for x in self.spots if self.spotEquals(spot, x)):
@@ -64,9 +72,29 @@ class PskReporter(object):
                 self.spots = []
             if spots:
                 self.uploader.upload(spots)
+                self.savelog(spots)
         except Exception:
             logging.exception("Failed to upload spots")
         self.timer = None
+
+    def savelog(self, spots):
+        spot_lines = []
+        for s in spots:
+            spot_lines.append("%s %s %s  %s %s %s %s\n" % (
+                        time.strftime("%H%M%S",  time.localtime(s["timestamp"])),
+                        ("%2.1f" % s["db"]).rjust(5, " "), 
+                        ("%2.1f" % s["dt"]).rjust(5, " "), 
+                        ("%2.6f" % (s["freq"]/1e6)).rjust(10, " "),
+                        PskReporter.supportedModes[s["mode"]],
+                        s["callsign"].ljust(6, " "),
+                        s["locator"]
+                    ))
+
+        if "LOG_SPOTS" in Config.get() and Config.get()["LOG_SPOTS"]:
+            file = os.path.join(self.logdir, "%s.log" % time.strftime("%y%m%d", time.localtime()))
+            with open(file, "a") as f:
+                f.writelines(spot_lines)
+
 
     def cancelTimer(self):
         if self.timer:
