@@ -129,7 +129,6 @@ class Option:
     def __init__(self, **entries):
         default = {
             'filename': '',
-            'dir': None,
             'tlimit': None,
             'dt': 0,
             'connect_retries': 0, 
@@ -214,8 +213,8 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         else:
             ts  = time.strftime(self._profile.getFileTimestampFormat(), self._start_ts)
             filename = '%s.wav' % ts
-        if self._options.dir is not None:
-            filename = '%s/%s' % (self._options.dir, filename)
+        
+        filename = os.path.join(Config.tmpdir(), self._options.station, self._profile.getMode(), self._band, filename)
         return filename
             
     def _write_wav_header(self, fp, filesize, samplerate, num_channels):
