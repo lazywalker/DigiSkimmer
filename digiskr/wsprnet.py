@@ -161,14 +161,14 @@ class Uploader(object):
         os.unlink(allmet)
 
     def saveall(self, spot_lines):
-        self.savelog(spot_lines, "ALL")
+        self.savelog(spot_lines, "")
 
     def savefail(self, spot_lines):
-        self.savelog(spot_lines, "FAIL")
+        self.savelog(spot_lines, "_FAIL")
 
     def savelog(self, spot_lines, type):
         if "LOG_SPOTS" in Config.get() and Config.get()["LOG_SPOTS"]:
-            file = os.path.join(self.logdir, "%s_%s.log" % (type, time.strftime("%y%m%d", time.localtime())))
+            file = os.path.join(self.logdir, "%s%s.log" % (time.strftime("%y%m%d", time.localtime()), type))
             self.save(spot_lines, file)
 
     def save(self, spot_lines, file):
