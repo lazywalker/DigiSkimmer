@@ -212,10 +212,6 @@ class WsprDecoder(Decoder):
         # '2600 -24  0.4   0.001492 -1  G8AXA JO01 33'
         # '0052 -29  2.6   0.001486  0  G02CWT IO92 23'
         wsjt_msg = msg[29:].strip()
-
-        # TODO: No idea what sync_quality used for but we need to add this field to bypass the upload check,
-        # it seems to useless because the static files downloaded from wsprnet.org doesn't contain this field.
-        # i don't want to read it from wspr_spots.txt so i simply pick a random value :)
         result = {
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),
@@ -223,9 +219,14 @@ class WsprDecoder(Decoder):
             "freq": (dial_freq * 1000 + int(float(msg[14:24]) * 1e6)) / 1e6,
             "drift": int(msg[25:28]),
             "mode": "WSPR",
+            # FIXME: No idea what sync_quality used for but we need to add this field to bypass the upload check,
+            # it seems to useless because the static files downloaded from wsprnet.org doesn't contain this field.
+            # i don't want to read it from wspr_spots.txt so i simply pick a random value :)
             "sync_quality": 0.7,
             "msg": wsjt_msg,
         }
+
+        #TODO: cleanup ALL_WSPR.txt to avoid disk full
         result.update(self.parseMessage(wsjt_msg))
         return result
 

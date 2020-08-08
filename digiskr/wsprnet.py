@@ -166,6 +166,7 @@ class Uploader(object):
     def savefail(self, spot_lines):
         self.savelog(spot_lines, "_FAIL")
 
+    #FIXME: add MAX_LOG_FILES to avoid disk full
     def savelog(self, spot_lines, type):
         if "LOG_SPOTS" in Config.get() and Config.get()["LOG_SPOTS"]:
             file = os.path.join(self.logdir, "%s%s.log" % (time.strftime("%y%m%d", time.localtime()), type))
