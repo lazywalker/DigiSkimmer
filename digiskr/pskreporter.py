@@ -73,9 +73,9 @@ class PskReporter(object):
             if spots:
                 self.uploader.upload(spots)
                 self.savelog(spots)
+                self.timer = None
         except Exception:
             logging.exception("Failed to upload spots")
-        self.timer = None
 
     def savelog(self, spots):
         spot_lines = []
