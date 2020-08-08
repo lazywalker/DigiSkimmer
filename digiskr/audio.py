@@ -1,4 +1,3 @@
-from digiskr import wsprnet
 from digiskr.wsjt import WsjtParser, WsjtProfile
 from digiskr.config import Config
 from digiskr.base import BaseSoundRecorder, DecoderQueue, Option, QueueJob
@@ -55,14 +54,9 @@ class WsjtSoundRecorder(BaseSoundRecorder):
             cwd=os.path.dirname(file),
             close_fds=True,
             )
-        
-        # No need for now, since WSJT-X read time from filename
-        # filename = os.path.basename(job.file)
-        # file_t = time.strptime(filename.split('-')[-1][:-4], self._profile.getFileTimestampFormat())   # Get time from filename like 200803_152201.wav
-        # receive_ts = time.strftime(self._profile.getLineTimestampFormat(), file_t)
+       
         messages = []
         for line in decoder.stdout:
-            # line = line.replace("000000".encode("utf-8"), receive_ts.encode("utf-8")) # No need for now, since WSJT-X read time from filename
             logging.log(logging.DEBUG, line)
             messages.append((job.freq, line))
         
@@ -79,8 +73,6 @@ class WsjtSoundRecorder(BaseSoundRecorder):
             rc = decoder.wait(timeout=10)
             if rc != 0:
                 logging.warning("decoder return code: %i", rc)
-            # elif self._profile.getMode() == "WSPR":
-            #     wsprnet.Uploader(self._options.station, self._band).upload()
 
         except subprocess.TimeoutExpired:
             logging.warning("subprocess (pid=%i}) did not terminate correctly; sending kill signal.", decoder.pid)

@@ -110,7 +110,7 @@ class Uploader(object):
                 spot["db"],
                 spot["dt"],
                 # freq in MHz for wsprnet
-                spot["freq"] / 1e6,
+                spot["freq"],
                 spot["callsign"],
                 spot["locator"],
                 spot["watt"],

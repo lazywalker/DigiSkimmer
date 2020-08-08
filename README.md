@@ -51,7 +51,7 @@ cp settings.py.template settings.py
 ```
 if you upgrade from below v0.20.5, please do remember to copy your settings from the old config.py into settings.py, filename changed, sorry.
 
-`STATIONS` is what kiwistation for, `SCHEDULES` is for the station/band hop, avaliable bands are:
+`STATIONS` is what kiwistation for, `SCHEDULES` is for the station/band hop, available bands are:
 ```
 FT8: 10 12 15 17 20 30 40 60 80 160
 FT4: 10 12 15 17 20 30 40 80
@@ -89,7 +89,7 @@ SCHEDULES = {
 `UPDATE:` digiskr support `band hop`, you can use a specific slot(or more) to rotate between bands, this feature is very helpful when you don't have enough slots. 
 
 * Use `|` to enable band hop, see the config below, 4 slots will be used, the last one is rotate between 60-80-160, one per minute.
-* You can also specifi what mode to spot, `~` for FT8(by default), `+` for FT4, `!` for WSPR.
+* You can also specific what mode to spot, `~` for FT8(by default), `+` for FT4, `!` for WSPR.
 * When using `'` or `|`, always remember to quote the band by `'`
 
 ```python

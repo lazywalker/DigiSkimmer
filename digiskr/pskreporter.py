@@ -84,7 +84,7 @@ class PskReporter(object):
                         time.strftime("%H%M%S",  time.localtime(s["timestamp"])),
                         ("%2.1f" % s["db"]).rjust(5, " "), 
                         ("%2.1f" % s["dt"]).rjust(5, " "), 
-                        ("%2.6f" % (s["freq"]/1e6)).rjust(10, " "),
+                        ("%2.6f" % s["freq"]).rjust(10, " "),
                         PskReporter.supportedModes[s["mode"]],
                         s["callsign"].ljust(6, " "),
                         s["locator"]
@@ -104,7 +104,7 @@ class PskReporter(object):
 
 
 class Uploader(object):
-    receieverDelimiter = [0x99, 0x92]
+    receiverDelimiter = [0x99, 0x92]
     senderDelimiter = [0x99, 0x93]
 
     def __init__(self, station: str):
@@ -158,7 +158,8 @@ class Uploader(object):
     def encodeSpot(self, spot):
         return bytes(
             self.encodeString(spot["callsign"])
-            + list(int(spot["freq"]).to_bytes(4, "big"))
+            # freq in Hz to pskreporter
+            + list(int(spot["freq"]*1e6).to_bytes(4, "big"))
             + list(int(spot["db"]).to_bytes(1, "big", signed=True))
             + self.encodeString(spot["mode"])
             + self.encodeString(spot["locator"])
@@ -171,7 +172,7 @@ class Uploader(object):
         return bytes(
             # id, length
             [0x00, 0x03, 0x00, 0x2C]
-            + Uploader.receieverDelimiter
+            + Uploader.receiverDelimiter
             # number of fields
             + [0x00, 0x04, 0x00, 0x00]
             # receiverCallsign
@@ -194,7 +195,7 @@ class Uploader(object):
         
         body = [b for s in [callsign, locator, decodingSoftware, antennaInformation] for b in self.encodeString(s)]
         body = self.pad(body, 4)
-        body = bytes(Uploader.receieverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
+        body = bytes(Uploader.receiverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
         return body
 
     def getSenderInformationHeader(self):

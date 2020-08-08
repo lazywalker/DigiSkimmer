@@ -33,7 +33,7 @@ class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
         elif mode == "WSPR":
             return WsprProfile()
         else:
-            raise Exception("invaild mode!")
+            raise Exception("invalid mode!")
     
 
 class FT8Profile(WsjtProfile):
@@ -45,9 +45,6 @@ class FT8Profile(WsjtProfile):
 
     def getFileTimestampFormat(self):
         return "%y%m%d_%H%M%S"
-
-    def getLineTimestampFormat(self):
-        return "%H%M%S"
 
     def decoder_commandline(self, file):
         return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
@@ -63,9 +60,6 @@ class FT4Profile(WsjtProfile):
     def getFileTimestampFormat(self):
         return "%y%m%d_%H%M%S"
 
-    def getLineTimestampFormat(self):
-        return "%H%M%S"
-
     def decoder_commandline(self, file):
         return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
 
@@ -80,9 +74,6 @@ class WsprProfile(WsjtProfile):
     def getFileTimestampFormat(self):
         return "%y%m%d_%H%M"
 
-    def getLineTimestampFormat(self):
-        return "%H%M"
-
     def decoder_commandline(self, file):
         cmd = ["wsprd"]
         if self.decoding_depth("wspr") > 1:
@@ -96,7 +87,7 @@ class JT65Profile(WsjtProfile):
         return 60
 
     def getFileTimestampFormat(self):
-        return "%Y%m%dT%H%MZ"
+        return "%Y%m%d %H%M"
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt65", "-d", str(self.decoding_depth("jt65")), file]
@@ -107,7 +98,7 @@ class JT9Profile(WsjtProfile):
         return 60
 
     def getFileTimestampFormat(self):
-        return "%Y%m%dT%H%MZ"
+        return "%Y%m%d %H%M"
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
@@ -138,13 +129,13 @@ class WsjtParser(LineParser):
                     self.getStation(), 
                     out["mode"], 
                     time.strftime("%H%M%S",  time.localtime(out["timestamp"])),
-                    out["db"], out["dt"], out["freq"]/1e6, out["msg"], 
+                    out["db"], out["dt"], out["freq"], out["msg"], 
                     out["callsign"] if "callsign" in out else "-", 
                     out["locator"] if "locator" in out else "")
                 if "mode" in out:
                     if "callsign" in out and "locator" in out:
                         PskReporter.getSharedInstance(self.getStation()).spot(out)
-                        # upload to wsprnet aswell
+                        # upload to wsprnet as well
                         if out["mode"] == "WSPR":
                             Wsprnet.getSharedInstance(self.getStation()).spot(out)
 
@@ -193,7 +184,7 @@ class JT9Decoder(Decoder):
             "timestamp": timestamp,
             "db": float(msg[0:3]),
             "dt": float(msg[4:8]),
-            "freq": dial_freq * 1000 + int(msg[9:13]),
+            "freq": (dial_freq * 1000 + int(msg[9:13])) / 1e6,
             "mode": mode,
             "msg": wsjt_msg,
         }
@@ -229,10 +220,10 @@ class WsprDecoder(Decoder):
             "timestamp": self.parse_timestamp(msg[0:4], "%H%M"),
             "db": float(msg[5:8]),
             "dt": float(msg[9:13]),
-            "freq": dial_freq * 1000 + int(float(msg[14:24]) * 1e6),
+            "freq": (dial_freq * 1000 + int(float(msg[14:24]) * 1e6)) / 1e6,
             "drift": int(msg[25:28]),
             "mode": "WSPR",
-            "sync_quality": 0.3,
+            "sync_quality": 0.7,
             "msg": wsjt_msg,
         }
         result.update(self.parseMessage(wsjt_msg))

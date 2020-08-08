@@ -116,10 +116,6 @@ class AudioDecoderProfile(ABC):
     @abstractmethod
     def getFileTimestampFormat(self):
         pass
-
-    @abstractmethod
-    def getLineTimestampFormat(self):
-        pass
     
     @abstractmethod
     def decoder_commandline(self, file):
@@ -270,7 +266,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
     def _print_status(self, time_to_wait):
         if self._profile.getMode() == "FT4":    # ft4 takes second position of status bar
             pos = 1
-        elif self._profile.getMode() == "WSPR":    # wspr takes thrid position of status bar
+        elif self._profile.getMode() == "WSPR":    # wspr takes third position of status bar
             pos = 2
         else:
             pos = 0
