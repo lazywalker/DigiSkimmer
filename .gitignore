@@ -6,5 +6,5 @@ __pycache__
 log/
 *~
 tmp/
-/settings.py
+/settings.py*
 /*.json

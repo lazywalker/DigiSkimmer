@@ -1,6 +1,7 @@
-
 TMP_PATH = './tmp/digiskr/'                         ## tmp directory to put wave files and etc.
-LOG_SPOTS = True                                    ## log spots to log/spots/{wsprnet|pskreport}/{station}, split by date
+LOG_PATH = './log/'
+LOG_TO_FILE = False
+LOG_SPOTS = False                                    ## log spots to log/spots/{wsprnet|pskreport}/{station}, split by date
 
 WSJTX = {
     'decoding_depth_global': 3,                     ## global settings
@@ -45,7 +46,7 @@ STATIONS = {
 }
 
 SCHEDULES = {
-    '*': {'cdsdr': [20]},
+    # '*': {'czsdr': [20]},
 
     # simple used:
     # '21:00-08:00': {'czsdr': [20, 30, 40, 60, 80, 160]},
@@ -64,15 +65,4 @@ SCHEDULES = {
     #     'czsdr': ['10|12|15|17|20|30|40|20+|30+|40+'],
     # }
 
-    ## for test
-    # '*': {'cdsdr': [20]},
-    # '*': {'szsdr': [20|40,30], 'czsdr': [20,30]},
-    # '14:00-17:08': {'szsdr': [40, 20], 'czsdr': [40]},
-    # '20:00-20:51': {'szsdr': [20, 60]},
-    # '20:51-22:00': {'szsdr': [40, 30, 20], 'czsdr': [20, 40]},
-    # '*': {'szsdr': [10, 12, 15, 17, 20, 30, 40, 60, 80, 160]},
-    # '21:00-08:00': {'szsdr': [10, 12, 15, 17, 20, 30, 40, 60, 80, 160], 'czsdr': [20, 30, 40, 60, 80, 160]},
-    # '08:00-14:30': {'szsdr': [10, 12, 15, 17, 20, 30, 40, 60, 80, 160], 'czsdr': [10, 12, 15, 17, 20, 30]},
-    # '14:30-21:00': {'szsdr': [10, 12, 15, 17, 20, 30, 40, 60, 80, 160], 'czsdr': [10, 15, 17, 20, 30, 40]},
-    # end for test
 }

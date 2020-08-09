@@ -1,0 +1,14 @@
+.git
+.gitignore
+.idea
+__pycache__
+**/*.swp
+*.pyc
+*.wav
+.vscode/
+log/
+*~
+tmp/
+/settings.py
+/*.json
+/docker
