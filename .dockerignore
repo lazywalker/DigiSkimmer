@@ -11,4 +11,3 @@ log/
 tmp/
 /settings.py
 /*.json
-/docker
