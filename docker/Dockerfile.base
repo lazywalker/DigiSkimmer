@@ -1,15 +1,21 @@
 FROM debian:bullseye-slim as builder
 
-RUN sed -i "s/deb.debian.org/mirrors.163.com/g" /etc/apt/sources.list && \
-    sed -i "s/security.debian.org/mirrors.163.com/g" /etc/apt/sources.list
+ARG APT=
+RUN if [ "${APT}" != "" ] ; then \
+    sed -i "s/deb.debian.org/${APT}/g" /etc/apt/sources.list && \
+    sed -i "s/security.debian.org/${APT}/g" /etc/apt/sources.list \
+    ; fi
     
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wsjtx=2.2.2+repack-2
 
 FROM debian:bullseye-slim
 
-RUN sed -i "s/deb.debian.org/mirrors.163.com/g" /etc/apt/sources.list && \
-    sed -i "s/security.debian.org/mirrors.163.com/g" /etc/apt/sources.list
+ARG APT=
+RUN if [ "${APT}" != "" ] ; then \
+    sed -i "s/deb.debian.org/${APT}/g" /etc/apt/sources.list && \
+    sed -i "s/security.debian.org/${APT}/g" /etc/apt/sources.list \
+    ; fi
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
