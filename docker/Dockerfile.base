@@ -1,15 +1,15 @@
 FROM debian:bullseye-slim as builder
 
-RUN sed -i "s/deb.debian.org/mirrors.ustc.edu.cn/g" /etc/apt/sources.list && \
-    sed -i "s/security.debian.org/mirrors.ustc.edu.cn/g" /etc/apt/sources.list
+RUN sed -i "s/deb.debian.org/mirrors.163.com/g" /etc/apt/sources.list && \
+    sed -i "s/security.debian.org/mirrors.163.com/g" /etc/apt/sources.list
     
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wsjtx=2.2.2+repack-2
 
 FROM debian:bullseye-slim
 
-RUN sed -i "s/deb.debian.org/mirrors.ustc.edu.cn/g" /etc/apt/sources.list && \
-    sed -i "s/security.debian.org/mirrors.ustc.edu.cn/g" /etc/apt/sources.list
+RUN sed -i "s/deb.debian.org/mirrors.163.com/g" /etc/apt/sources.list && \
+    sed -i "s/security.debian.org/mirrors.163.com/g" /etc/apt/sources.list
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -19,8 +19,3 @@ RUN apt-get update && \
 
 COPY --from=builder /usr/bin/jt9 /usr/bin/
 COPY --from=builder /usr/bin/wsprd /usr/bin/
-
-WORKDIR /app/digiskr
-VOLUME /opt/digiskr
-
-CMD ["/app/digiskr/fetch.py"]
