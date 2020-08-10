@@ -60,7 +60,7 @@ def setup_logger():
     except ImportError:
         import logging, logging.handlers
         FORMAT = "%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"
-        logging.basicConfig(level=logging.DEBUG if debug else logging.DEBUG , format=FORMAT)
+        logging.basicConfig(level=logging.DEBUG if debug else logging.INFO , format=FORMAT)
 
     # log to file
     if log_to_file:
