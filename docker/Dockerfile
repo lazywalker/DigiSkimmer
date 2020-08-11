@@ -1,5 +1,5 @@
-ARG VER="latest"
-FROM lazywalker/digiskr-base:${VER}
+ARG TAG="latest"
+FROM lazywalker/digiskr-base:${TAG}
 
 COPY settings.py.template /opt/digiskr/settings.py
 COPY docker/entrypoint.sh /entrypoint.sh

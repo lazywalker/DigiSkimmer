@@ -1,23 +1,23 @@
 APT="mirrors.ustc.edu.cn"
 PLATFORM="linux/amd64,linux/arm64,linux/arm/v7"
-VER=latest
+TAG=latest
 
 all: base app
 
 base:
-	docker build --build-arg APT="${APT}" -t lazywalker/digiskr-base:${VER} -f docker/Dockerfile.base.${VER} .
+	docker build --build-arg APT="${APT}" -t lazywalker/digiskr-base:${TAG} -f docker/Dockerfile.base.${TAG} .
 
 app:
-	docker build --build-arg VER=${VER} -t lazywalker/digiskr:${VER} -f docker/Dockerfile .
+	docker build --build-arg TAG=${TAG} -t lazywalker/digiskr:${TAG} -f docker/Dockerfile .
 
 pushall: push
-	docker push lazywalker/digiskr-base:${VER}
+	docker push lazywalker/digiskr-base:${TAG}
 
 push:
-	docker push lazywalker/digiskr:${VER}
+	docker push lazywalker/digiskr:${TAG}
 
 buildx-base:
-	docker buildx build  --build-arg APT="${APT}" --platform ${PLATFORM} -t lazywalker/digiskr-base:${VER} -f docker/Dockerfile.base.${VER} --push .
+	docker buildx build  --build-arg APT="${APT}" --platform ${PLATFORM} -t lazywalker/digiskr-base:${TAG} -f docker/Dockerfile.base.${TAG} --push .
 
 buildx:
-	docker buildx build --build-arg VER=${VER} --platform ${PLATFORM} -t lazywalker/digiskr:${VER} -f docker/Dockerfile --push .
+	docker buildx build --build-arg TAG=${TAG} --platform ${PLATFORM} -t lazywalker/digiskr:${TAG} -f docker/Dockerfile --push .
