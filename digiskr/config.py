@@ -55,7 +55,7 @@ class Config:
 
     @staticmethod
     def _loadConfig():
-        for file in ["./settings.py", "./settings.json"]:
+        for file in ["/opt/digiskr/settings.py", "./settings.py", "./settings.json"]:
             try:
                 if file.endswith(".py"):
                     return Config._loadPythonFile(file)

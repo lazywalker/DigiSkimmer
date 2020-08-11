@@ -57,7 +57,7 @@ class WsjtSoundRecorder(BaseSoundRecorder):
        
         messages = []
         for line in decoder.stdout:
-            logging.log(logging.DEBUG, line)
+            logging.debug(line)
             messages.append((job.freq, line))
         
         # set grid & antenna information from kiwi station, if we can't found them at config

@@ -26,7 +26,8 @@ _sr_tasks = []
 threading.currentThread().setName("main")
 
 def setup_logger():
-    debug = "DEBUG" in _conf
+    debug = _conf["DEBUG"] if "DEBUG" in _conf else False
+    log_to_file = _conf["LOG_TO_FILE"] if "LOG_TO_FILE" in _conf else False
     try:
         # if colorlog installed (pip install colorlog)
         from colorlog import ColoredFormatter
@@ -59,14 +60,16 @@ def setup_logger():
     except ImportError:
         import logging, logging.handlers
         FORMAT = "%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"
-        logging.basicConfig(level=logging.DEBUG if debug else logging.DEBUG , format=FORMAT)
+        logging.basicConfig(level=logging.DEBUG if debug else logging.INFO , format=FORMAT)
 
     # log to file
-    filehandler = logging.handlers.TimedRotatingFileHandler("log/digiskr.log", when="midnight", interval=1, backupCount=30)
-    filehandler.setLevel(logging.DEBUG)
-    filehandler.suffix = "%Y%m%d"
-    filehandler.setFormatter(logging.Formatter("%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"))
-    logging.getLogger('').addHandler(filehandler)
+    if log_to_file:
+        os.makedirs(Config.logdir(), exist_ok=True)
+        filehandler = logging.handlers.TimedRotatingFileHandler(os.path.join(Config.logdir(), "digiskr.log"), when="midnight", interval=1, backupCount=30)
+        filehandler.setLevel(logging.DEBUG)
+        filehandler.suffix = "%Y%m%d"
+        filehandler.setFormatter(logging.Formatter("%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"))
+        logging.getLogger('').addHandler(filehandler)
 
 
 def setup_kiwistation(station, station_name):
@@ -182,8 +185,8 @@ def main():
             else: #no tasks available
                 [remove_thread(_sr_tasks, r) for r in _sr_tasks]
                 logging.warning("There is no tasks")
-                logging.warning("I'm waiting...")
-
+                logging.warning("Quit...")
+                exit(0)
 
     except KeyboardInterrupt:
         logging.warning("KeyboardInterrupt: exiting...")

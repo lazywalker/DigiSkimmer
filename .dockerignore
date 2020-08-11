@@ -1,10 +1,13 @@
+.git
+.gitignore
+.idea
 __pycache__
+**/*.swp
 *.pyc
-*.png
 *.wav
 .vscode/
 log/
 *~
 tmp/
-/settings.py*
+/settings.py
 /*.json
