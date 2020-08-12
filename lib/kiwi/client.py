@@ -116,7 +116,22 @@ class KiwiSDRStreamBase(object):
         self._version_major = None
         self._version_minor = None
         self._modulation = None
+        self._lowcut = 0
+        self._highcut = 0
+        self._frequency = 0
         self._stream = None
+
+    def get_mod(self):
+        return self._modulation
+
+    def get_lowcut(self):
+        return self._lowcut
+
+    def get_highcut(self):
+        return self._highcut
+
+    def get_frequency(self):
+        return self._frequency
 
     def connect(self, host, port):
         # self._prepare_stream(host, port, 'SND')
@@ -182,6 +197,9 @@ class KiwiSDRStream(KiwiSDRStreamBase):
         self._version_major = None
         self._version_minor = None
         self._modulation = None
+        self._lowcut = 0
+        self._highcut = 0
+        self._frequency = 0
         self._compression = True
         self._gps_pos = [0,0]
         self._s_meter_avgs = self._s_meter_cma = 0
@@ -226,15 +244,15 @@ class KiwiSDRStream(KiwiSDRStreamBase):
                                 else:
                                     raise KiwiUnknownModulation('"%s"' % mod)
         self._send_message('SET mod=%s low_cut=%d high_cut=%d freq=%.3f' % (mod, lc, hc, freq))
+        self._lowcut = lc
+        self._highcut = hc
+        self._frequency = freq
 
     def set_agc(self, on=False, hang=False, thresh=-100, slope=6, decay=1000, gain=50):
         self._send_message('SET agc=%d hang=%d thresh=%d slope=%d decay=%d manGain=%d' % (on, hang, thresh, slope, decay, gain))
 
     def set_squelch(self, sq, thresh):
         self._send_message('SET squelch=%d max=%d' % (sq, thresh))
-
-    def set_autonotch(self, val):
-        self._send_message('SET lms_autonotch=%d' % (val))
 
     def set_noise_blanker(self, gate, thresh):
         self._send_message('SET nb=%d th=%d' % (gate, thresh))
@@ -296,7 +314,7 @@ class KiwiSDRStream(KiwiSDRStreamBase):
             self._gps_pos = [float(x) for x in urllib.unquote(d['rx_gps'])[1:-1].split(",")[0:2]]
             logging.info("GNSS position: lat,lon=[%+6.2f, %+7.2f], Grid: %s, Antenna: %s" 
                 % (self._gps_pos[0], self._gps_pos[1], self._rx_grid, urllib.unquote(self._rx_antenna)))
-            self._on_gnss_position(self._gps_pos)
+            self._on_gnss_position(self._gps_pos) 
         else:
             logging.debug("recv MSG (%s) %s: %s", self._stream_name, name, value)
         # Handle error conditions
@@ -314,7 +332,6 @@ class KiwiSDRStream(KiwiSDRStreamBase):
             self._on_sample_rate_change()
             # Optional, but is it?..
             self.set_squelch(0, 0)
-            self.set_autonotch(0)
             self._set_gen(0, 0)
             # Required to get rolling
             self._setup_rx_params()
@@ -385,7 +402,7 @@ class KiwiSDRStream(KiwiSDRStreamBase):
                 self._meas_count += 1
                 self._tot_meas_count += 1
                 ts = time.strftime('%d-%b-%Y %H:%M:%S UTC ', time.gmtime()) if self._options.tstamp else ''
-                print("%sRSSI: %6.1f %d" % (ts, rssi, self._options.tstamp))
+                logging.debug("%sRSSI: %6.1f %d" % (ts, rssi, self._options.tstamp))
                 if not self._options.sound:
                     return
             else:
@@ -439,7 +456,9 @@ class KiwiSDRStream(KiwiSDRStreamBase):
                 self._process_audio_samples_raw(seq, data, rssi)
             else:
                 if self._compression:
-                    samples = self._decoder.decode(data)
+                    sarray = self._decoder.decode(data)
+                    count = len(sarray)
+                    samples = np.ndarray(count, dtype='int16', buffer=sarray)
                 else:
                     count = len(data) // 2
                     samples = np.ndarray(count, dtype='>h', buffer=data).astype(np.int16)
