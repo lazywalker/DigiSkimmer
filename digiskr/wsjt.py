@@ -115,9 +115,9 @@ class WsjtParser(LineParser):
                 msg = raw_msg.decode().rstrip()
                 # known debug messages we know to skip
                 if msg.startswith("<DecodeFinished>"):  # this is what jt9 std output
-                    return
+                    continue
                 if msg.startswith(" EOF on input file"): # this is what jt9 std output
-                    return
+                    continue
 
                 modes = list(WsjtParser.modes.keys())
                 if msg[21] in modes or msg[19] in modes:
