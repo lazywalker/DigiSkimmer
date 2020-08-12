@@ -1,7 +1,7 @@
 import logging
 import threading
 
-from .client import KiwiTooBusyError, KiwiTimeLimitError, KiwiServerTerminatedConnection
+from .client import KiwiDownError, KiwiTooBusyError, KiwiTimeLimitError, KiwiServerTerminatedConnection
 
 class KiwiWorker(threading.Thread):
     def __init__(self, target=None, name=None):
@@ -56,7 +56,16 @@ class KiwiWorker(threading.Thread):
 
                 self._event.wait(timeout=15)
                 continue
+            except KiwiDownError:
+                # kiwi is upgrading or something else
+                logging.warning("%s:%d is down now. Reconnecting after 60 seconds"
+                      % (self._options.server_host, self._options.server_port))
+
+                self._event.wait(timeout=60)
+                continue
             except KiwiTimeLimitError:
+                logging.fatal("%s:%d is reaching time limited, i'm out."
+                      % (self._options.server_host, self._options.server_port))
                 break
             except Exception:
                 logging.exception("KW Error")
