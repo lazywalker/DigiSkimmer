@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # TimeZone validation
-if [ "${TZ}" == "set_me" ] ; 
+if [ -z "${TZ}" ] ; 
 then 
     echo "Please set TZ environment variable with -e TZ=(timezone)"
     echo ""

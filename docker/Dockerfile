@@ -11,7 +11,7 @@ RUN sed -i -e "s/TMP_PATH = '.*'/TMP_PATH = '\/tmp\/digiskr'/g" /opt/digiskr/set
 
 WORKDIR /app/digiskr
 VOLUME /opt/digiskr
-ENV TZ set_me
+ENV TZ=
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/app/digiskr/fetch.py"]

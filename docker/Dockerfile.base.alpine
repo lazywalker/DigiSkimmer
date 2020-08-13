@@ -1,0 +1,43 @@
+FROM alpine:latest as builder
+
+ARG APT=
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
+    if [ "${APT}" != "" ] ; then \
+    sed -i "s/dl-cdn.alpinelinux.org/${APT}/g" /etc/apk/repositories \
+    ; fi
+
+RUN apk update && \
+    apk add --no-cache \
+    git cmake make gcc g++ patch \
+    gfortran asciidoc asciidoctor libusb-dev fftw-dev hamlib-dev \
+    qt5-qtserialport-dev qt5-qttools-dev qt5-qtmultimedia-dev
+
+ARG WSJT_DIR=wsjtx-2.2.2
+ADD "http://physics.princeton.edu/pulsar/k1jt/${WSJT_DIR}.tgz" /tmp/
+COPY docker/patch/*.patch /tmp/
+RUN cd /tmp && \
+    tar xfz ${WSJT_DIR}.tgz && \
+    patch -Np0 -d ${WSJT_DIR} < /tmp/wsjtx-hamlib.patch && \
+    mv /tmp/wsjtx.patch ${WSJT_DIR} && \
+    cd ${WSJT_DIR} && \
+    export MAKEFLAGS="-j4" && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    make install
+
+FROM alpine:latest
+
+ARG APT=
+RUN if [ "${APT}" != "" ] ; then \
+    sed -i "s/dl-cdn.alpinelinux.org/${APT}/g" /etc/apk/repositories \
+    ; fi
+
+RUN apk update && \
+    apk add --no-cache \
+    fftw qt5-qtbase libgomp \
+    python3 py3-numpy py3-requests
+
+COPY --from=builder /usr/local/bin/jt9 /usr/local/bin/
+COPY --from=builder /usr/local/bin/wsprd /usr/local/bin/
