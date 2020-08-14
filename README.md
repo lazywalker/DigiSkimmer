@@ -27,7 +27,7 @@ Edit `/var/lib/docker/volumes/digiskr/_data/settings.py`, follow the `Configurat
 ```
 You are good to go.
 
-FYI, [Here](https://www.raspberrypi.org/blog/docker-comes-to-raspberry-pi/) is a quick setup guide for Raspberry Pi, for short, all you need to do is `run curl -sSL https://get.docker.com | sh`
+FYI, [Here](https://www.raspberrypi.org/blog/docker-comes-to-raspberry-pi/) is a quick setup guide for Raspberry Pi, for short, all you need to do is run `curl -sSL https://get.docker.com | sh`
 
 # Manual Setup
 If you want to do it manually follow those steps.
@@ -51,7 +51,8 @@ wget http://physics.princeton.edu/pulsar/k1jt/wsjtx_2.2.2_armhf.deb
 sudo dpkg -i wsjtx_2.2.2_armhf.de
 ```
 
-### For Debian (I only tested debian 11 - bullseye/sid, cause only this version have a ready-to-go wsjtx-2.2.2 package.)
+### For Debian
+I only tested debian 11 - bullseye/sid, cause only this version have a ready-to-go wsjtx-2.2.2 package.
 ```bash
 sudo apt update
 sudo apt install wsjtx
