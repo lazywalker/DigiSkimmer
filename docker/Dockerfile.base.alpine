@@ -36,7 +36,7 @@ RUN if [ "${APT}" != "" ] ; then \
 
 RUN apk update && \
     apk add --no-cache \
-    fftw qt5-qtbase libgomp \
+    fftw qt5-qtbase libgomp tzdata \
     python3 py3-numpy py3-requests
 
 COPY --from=builder /usr/local/bin/jt9 /usr/local/bin/
