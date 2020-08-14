@@ -5,6 +5,32 @@ This can be useful in determining propagation conditions or in adjusting antenna
 
 It is also interesting to see how long it takes to spot 100 different DXCC/countries. (A well placed station with a decent antenna can do this within a week of monitoring, but the best systems can do it within a single day).
 
+# Getting Started using Docker
+If you have a running docker setup you should quite easy to get started.
+```bash
+docker run -eTZ=`cat /etc/timezone` -v digiskr:/opt/digiskr --tmpfs=/tmp/digiskr lazywalker/digiskr
+```
+You should see out just like:
+```log
+Timezone is Asia/Shanghai
+2020-08-14 09:44:47,077 WARNING     1 [main] No tasks in queue.
+2020-08-14 09:44:47,077 WARNING     1 [main] I'm out
+```
+
+Edit `/var/lib/docker/volumes/digiskr/_data/settings.py`, follow the `Configuration` section below, then run it again, if everything well you should see:
+```log
+2020-08-14 01:49:15,124 INFO      1 [main] current schedule is: {'szsdr': ['20!']}
+2020-08-14 01:49:15,125 INFO      1 [main] QueueWorker QW-0 started
+2020-08-14 01:49:15,126 INFO      1 [main] QueueWorker QW-1 started
+2020-08-14 01:49:15,127 INFO      1 [main] QueueWorker QW-2 started
+2020-08-14 01:49:15,127 INFO      1 [main] Started sound recorder szsdr-20!, timestamp=1597369756
+```
+You are good to go.
+
+FYI, [Here](https://www.raspberrypi.org/blog/docker-comes-to-raspberry-pi/) is a quick setup guide for Raspberry Pi, for short, all you need to do is `run curl -sSL https://get.docker.com | sh`
+
+# Manual Setup
+If you want to do it manually follow those steps.
 ## 1. Preparation
 To do so, first you need to install WSJT-X, the client that most people use for decoding FT8.
 
@@ -25,7 +51,7 @@ wget http://physics.princeton.edu/pulsar/k1jt/wsjtx_2.2.2_armhf.deb
 sudo dpkg -i wsjtx_2.2.2_armhf.de
 ```
 
-### For Debian (I only tested debian 11 - bullseye/si)
+### For Debian (I only tested debian 11 - bullseye/sid, cause only this version have a ready-to-go wsjtx-2.2.2 package.)
 ```bash
 sudo apt update
 sudo apt install wsjtx
