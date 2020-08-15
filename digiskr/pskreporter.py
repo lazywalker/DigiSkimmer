@@ -191,7 +191,7 @@ class Uploader(object):
         callsign = self.station["callsign"]
         locator = self.station["grid"]
         antennaInformation = self.station["antenna"] if "antenna" in self.station else ""
-        decodingSoftware = config.DECODING_SOFTWARE
+        decodingSoftware = config.DECODING_SOFTWARE + " KiwiSDR"
         
         body = [b for s in [callsign, locator, decodingSoftware, antennaInformation] for b in self.encodeString(s)]
         body = self.pad(body, 4)
