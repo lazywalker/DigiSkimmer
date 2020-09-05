@@ -1,5 +1,7 @@
 FROM debian:buster-slim as builder
 
+LABEL maintainer="Michael BD7MQB <bd7mqb@qq.com>"
+
 ARG APT=
 RUN if [ "${APT}" != "" ] ; then \
     sed -i "s/deb.debian.org/${APT}/g" /etc/apt/sources.list && \

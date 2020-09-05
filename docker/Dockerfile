@@ -1,6 +1,8 @@
 ARG TAG="latest"
 FROM lazywalker/digiskr-base:${TAG}
 
+LABEL maintainer="Michael BD7MQB <bd7mqb@qq.com>"
+
 COPY settings.py.template /opt/digiskr/settings.py
 COPY docker/entrypoint.sh /entrypoint.sh
 COPY . /app/digiskr

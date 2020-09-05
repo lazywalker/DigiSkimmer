@@ -1,5 +1,7 @@
 FROM alpine:latest as builder
 
+LABEL maintainer="Michael BD7MQB <bd7mqb@qq.com>"
+
 ARG APT=
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     if [ "${APT}" != "" ] ; then \
