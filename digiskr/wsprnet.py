@@ -10,10 +10,11 @@ from digiskr.config import Config
 
 import requests
 
+
 class Wsprnet(object):
     sharedInstance = {}
     creationLock = threading.Lock()
-    # avoid the two minute boundaries 
+    # avoid the two minute boundaries
     interval = 45
     supportedModes = ["WSPR"]
 
@@ -35,8 +36,10 @@ class Wsprnet(object):
         self.timer = None
 
         # prepare tmpdir for uploader
-        self.tmpdir = os.path.join(Config.tmpdir(), station, "WSPR", "wsprnet.uploader")
-        self.logdir = os.path.join(Config.logdir(), "spots", "wsprnet", station)
+        self.tmpdir = os.path.join(
+            Config.tmpdir(), station, "WSPR", "wsprnet.uploader")
+        self.logdir = os.path.join(
+            Config.logdir(), "spots", "wsprnet", station)
         os.makedirs(self.tmpdir, exist_ok=True)
         os.makedirs(self.logdir, exist_ok=True)
 
@@ -121,7 +124,8 @@ class Uploader(object):
         self.saveall(spot_lines)
 
         postfiles = {"allmept": open(allmet, "r")}
-        params = {"call": self.station["callsign"], "grid": self.station["grid"]}
+        params = {"call": self.station["callsign"],
+                  "grid": self.station["grid"]}
 
         max_retries = 3
         retries = 0
@@ -132,19 +136,21 @@ class Uploader(object):
                 requests.adapters.DEFAULT_RETRIES = 5
                 s = requests.session()
                 s.keep_alive = False
-                resp = s.post("http://wsprnet.org/post", files=postfiles, params=params, timeout=300)
+                resp = s.post("http://wsprnet.org/post",
+                              files=postfiles, params=params, timeout=300)
 
                 if resp.status_code == 200:
                     # if we can not find the text of success
                     if resp.text.find("spot(s) added") == -1:
                         self.savefail(spot_lines)
                     break
-                
+
             # TODO: handle with retry
             except requests.ConnectionError or requests.exceptions.Timeout as e:
                 logging.error("Wsprnet connection error %s", e)
-                if retries >= max_retries:                    
-                    logging.warning("Saving %d spot to wspr_upload_fail.log", len(spot_lines))
+                if retries >= max_retries:
+                    logging.warning(
+                        "Saving %d spot to wspr_upload_fail.log", len(spot_lines))
                     self.savefail(spot_lines)
                     break
                 else:
@@ -156,7 +162,7 @@ class Uploader(object):
                 logging.error("Wsprnet read timeout error %s", e)
                 self.savefail(spot_lines)
                 break
-        
+
         logging.debug("delete %s", allmet)
         os.unlink(allmet)
 
@@ -166,10 +172,11 @@ class Uploader(object):
     def savefail(self, spot_lines):
         self.savelog(spot_lines, "_FAIL")
 
-    #FIXME: add MAX_LOG_FILES to avoid disk full
+    # FIXME: add MAX_LOG_FILES to avoid disk full
     def savelog(self, spot_lines, type):
         if "LOG_SPOTS" in Config.get() and Config.get()["LOG_SPOTS"]:
-            file = os.path.join(self.logdir, "%s%s.log" % (time.strftime("%y%m%d", time.localtime()), type))
+            file = os.path.join(self.logdir, "%s%s.log" % (
+                time.strftime("%y%m%d", time.localtime()), type))
             self.save(spot_lines, file)
 
     def save(self, spot_lines, file):

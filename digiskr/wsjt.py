@@ -1,13 +1,15 @@
 from datetime import datetime
 from digiskr.wsprnet import Wsprnet
 from digiskr.parser import LineParser
-import re, time
+import re
+import time
 from digiskr.pskreporter import PskReporter
 from digiskr.base import AudioDecoderProfile
 from digiskr.config import Config
 from abc import ABC, ABCMeta, abstractmethod
 
 import logging
+
 
 class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
     def decoding_depth(self, mode):
@@ -20,7 +22,7 @@ class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
             # return global default
             if "decoding_depth_global" in conf:
                 return conf["decoding_depth_global"]
-        
+
         # default when no setting is provided
         return 3
 
@@ -34,12 +36,12 @@ class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
             return WsprProfile()
         else:
             raise Exception("invalid mode!")
-    
+
 
 class FT8Profile(WsjtProfile):
     def getMode(self):
         return "FT8"
-    
+
     def getInterval(self):
         return 15
 
@@ -116,7 +118,7 @@ class WsjtParser(LineParser):
                 # known debug messages we know to skip
                 if msg.startswith("<DecodeFinished>"):  # this is what jt9 std output
                     continue
-                if msg.startswith(" EOF on input file"): # this is what jt9 std output
+                if msg.startswith(" EOF on input file"):  # this is what jt9 std output
                     continue
 
                 modes = list(WsjtParser.modes.keys())
@@ -125,19 +127,22 @@ class WsjtParser(LineParser):
                 else:
                     decoder = WsprDecoder()
                 out = decoder.parse(msg, freq)
-                logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%2.6f %s : %s %s", 
-                    self.getStation(), 
-                    out["mode"], 
-                    time.strftime("%H%M%S",  time.localtime(out["timestamp"])),
-                    out["db"], out["dt"], out["freq"], out["msg"], 
-                    out["callsign"] if "callsign" in out else "-", 
-                    out["locator"] if "locator" in out else "")
+                logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%2.6f %s : %s %s",
+                             self.getStation(),
+                             out["mode"],
+                             time.strftime(
+                                 "%H%M%S",  time.localtime(out["timestamp"])),
+                             out["db"], out["dt"], out["freq"], out["msg"],
+                             out["callsign"] if "callsign" in out else "-",
+                             out["locator"] if "locator" in out else "")
                 if "mode" in out:
                     if "callsign" in out and "locator" in out:
-                        PskReporter.getSharedInstance(self.getStation()).spot(out)
+                        PskReporter.getSharedInstance(
+                            self.getStation()).spot(out)
                         # upload to wsprnet as well
                         if out["mode"] == "WSPR":
-                            Wsprnet.getSharedInstance(self.getStation()).spot(out)
+                            Wsprnet.getSharedInstance(
+                                self.getStation()).spot(out)
 
             except ValueError:
                 logging.exception("error while parsing wsjt message")
@@ -157,9 +162,11 @@ class Decoder(ABC):
 
 class JT9Decoder(Decoder):
     # CQ DX BD7MQB OM92
-    locator_pattern = re.compile(".+[A-Z0-9/]+\s([A-Z0-9/]+?)\s([A-R]{2}[0-9]{2})$")
+    locator_pattern = re.compile(
+        ".+[A-Z0-9/]+\s([A-Z0-9/]+?)\s([A-R]{2}[0-9]{2})$")
     # HU4FUJ CV1KUS/R R NC08
-    locator_pattern2 = re.compile(".+[A-Z0-9/]+\s([A-Z0-9/]+?)\s[A-Z]\s([A-R]{2}[0-9]{2})$")
+    locator_pattern2 = re.compile(
+        ".+[A-Z0-9/]+\s([A-Z0-9/]+?)\s[A-Z]\s([A-R]{2}[0-9]{2})$")
 
     def parse(self, msg, dial_freq):
         # ft8 sample
@@ -174,8 +181,8 @@ class JT9Decoder(Decoder):
             dateformat = "%H%M"
         else:
             dateformat = "%H%M%S"
-        timestamp = self.parse_timestamp(msg[0 : len(dateformat)], dateformat)
-        msg = msg[len(dateformat) + 1 :]
+        timestamp = self.parse_timestamp(msg[0: len(dateformat)], dateformat)
+        msg = msg[len(dateformat) + 1:]
         modeChar = msg[14:15]
         mode = WsjtParser.modes[modeChar] if modeChar in WsjtParser.modes else "unknown"
         wsjt_msg = msg[17:53].strip()
@@ -205,7 +212,8 @@ class JT9Decoder(Decoder):
 
 
 class WsprDecoder(Decoder):
-    wspr_splitter_pattern = re.compile("([A-Z0-9]*)\s([A-R]{2}[0-9]{2})\s([0-9]+)")
+    wspr_splitter_pattern = re.compile(
+        "([A-Z0-9]*)\s([A-R]{2}[0-9]{2})\s([0-9]+)")
 
     def parse(self, msg, dial_freq):
         # wspr sample
@@ -226,7 +234,7 @@ class WsprDecoder(Decoder):
             "msg": wsjt_msg,
         }
 
-        #TODO: cleanup ALL_WSPR.txt to avoid disk full
+        # TODO: cleanup ALL_WSPR.txt to avoid disk full
         result.update(self.parseMessage(wsjt_msg))
         return result
 
