@@ -9,7 +9,9 @@ import socket
 from functools import reduce
 from operator import and_
 
-_modes = lambda d: dict([(v,k) for (k,v) in d.items()])
+
+def _modes(d): return dict([(v, k) for (k, v) in d.items()])
+
 
 class PskReporter(object):
     sharedInstance = {}
@@ -37,20 +39,23 @@ class PskReporter(object):
         self.timer = None
 
         # prepare logdir for uploader
-        self.logdir = os.path.join(Config.logdir(), "spots", "pskreport", station)
+        self.logdir = os.path.join(
+            Config.logdir(), "spots", "pskreport", station)
         os.makedirs(self.logdir, exist_ok=True)
 
     def scheduleNextUpload(self):
         if self.timer:
             return
         delay = PskReporter.interval + random.uniform(0, 15)
-        logging.info("scheduling next pskreporter upload in %3.2f seconds", delay)
+        logging.info(
+            "scheduling next pskreporter upload in %3.2f seconds", delay)
         self.timer = threading.Timer(delay, self.upload)
         self.timer.setName("psk.uploader-%s" % self.station)
         self.timer.start()
 
     def spotEquals(self, s1, s2):
-        keys = ["callsign", "timestamp", "locator", "db", "freq", "mode", "msg"]
+        keys = ["callsign", "timestamp",
+                "locator", "db", "freq", "mode", "msg"]
 
         return reduce(and_, map(lambda key: s1[key] == s2[key], keys))
 
@@ -81,20 +86,20 @@ class PskReporter(object):
         spot_lines = []
         for s in spots:
             spot_lines.append("%s %s %s  %s %s %s %s\n" % (
-                        time.strftime("%H%M%S",  time.localtime(s["timestamp"])),
-                        ("%2.1f" % s["db"]).rjust(5, " "), 
-                        ("%2.1f" % s["dt"]).rjust(5, " "), 
-                        ("%2.6f" % s["freq"]).rjust(10, " "),
-                        PskReporter.supportedModes[s["mode"]],
-                        s["callsign"].ljust(6, " "),
-                        s["locator"]
-                    ))
+                time.strftime("%H%M%S",  time.localtime(s["timestamp"])),
+                ("%2.1f" % s["db"]).rjust(5, " "),
+                ("%2.1f" % s["dt"]).rjust(5, " "),
+                ("%2.6f" % s["freq"]).rjust(10, " "),
+                PskReporter.supportedModes[s["mode"]],
+                s["callsign"].ljust(6, " "),
+                s["locator"]
+            ))
 
         if "LOG_SPOTS" in Config.get() and Config.get()["LOG_SPOTS"]:
-            file = os.path.join(self.logdir, "%s.log" % time.strftime("%y%m%d", time.localtime()))
+            file = os.path.join(self.logdir, "%s.log" %
+                                time.strftime("%y%m%d", time.localtime()))
             with open(file, "a") as f:
                 f.writelines(spot_lines)
-
 
     def cancelTimer(self):
         if self.timer:
@@ -125,7 +130,7 @@ class Uploader(object):
         def chunks(l, n):
             """Yield successive n-sized chunks from l."""
             for i in range(0, len(l), n):
-                yield l[i : i + n]
+                yield l[i: i + n]
 
         rHeader = self.getReceiverInformationHeader()
         rInfo = self.getReceiverInformation()
@@ -192,10 +197,12 @@ class Uploader(object):
         locator = self.station["grid"]
         antennaInformation = self.station["antenna"] if "antenna" in self.station else ""
         decodingSoftware = config.DECODING_SOFTWARE + " KiwiSDR"
-        
-        body = [b for s in [callsign, locator, decodingSoftware, antennaInformation] for b in self.encodeString(s)]
+
+        body = [b for s in [callsign, locator, decodingSoftware,
+                            antennaInformation] for b in self.encodeString(s)]
         body = self.pad(body, 4)
-        body = bytes(Uploader.receiverDelimiter + list((len(body) + 4).to_bytes(2, "big")) + body)
+        body = bytes(Uploader.receiverDelimiter +
+                     list((len(body) + 4).to_bytes(2, "big")) + body)
         return body
 
     def getSenderInformationHeader(self):

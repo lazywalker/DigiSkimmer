@@ -7,15 +7,16 @@ VERSION = '0.20.7'
 KIWI_USER = "digiskr_%s" % VERSION
 DECODING_SOFTWARE = "DigiSkimmer %s" % VERSION
 MODES = {'~': 'FT8', '#': 'JT65', '@': 'JT9', '+': 'FT4', '!': 'WSPR'}
-BANDS = {   #Freq in MHz
-    'FT8': {'160':1.840, '80':3.573, '60':5.357, '40':7.074, '30':10.136, '20':14.074, '17':18.100, '15':21.074, '12':24.915, '10':28.074, '6':50.313},
-    'FT4': {'80':3.575, '40':7.0475, '30':10.140, '20':14.080, '17':18.104, '15':21.140, '12':24.919, '10':28.180, '6':50.318},
+BANDS = {  # Freq in MHz
+    'FT8': {'160': 1.840, '80': 3.573, '60': 5.357, '40': 7.074, '30': 10.136, '20': 14.074, '17': 18.100, '15': 21.074, '12': 24.915, '10': 28.074, '6': 50.313},
+    'FT4': {'80': 3.575, '40': 7.0475, '30': 10.140, '20': 14.080, '17': 18.104, '15': 21.140, '12': 24.919, '10': 28.180, '6': 50.318},
     'WSPR': {
         '2190': 0.136000, '630': 0.474200, '160': 1.836600, '80': 3.568600, '60': 7.038600, '40': 7.038600, '30': 10.138700,
         '20': 14.095600, '17': 18.104600, '15': 21.094600, '12': 24.924600, '10': 28.124600, '6': 50.293000,
         '2': 144.489000, '0.7': 432.300000
     }
 }
+
 
 class ConfigNotFoundException(Exception):
     pass
@@ -96,7 +97,7 @@ class Config:
     def checkTempDirectory(conf: dict):
         if "TMP_PATH" not in conf or conf["TMP_PATH"] is None:
             return ConfigError("TMP_PATH", "temporary directory is not set")
-            
+
         return None
 
     @staticmethod
@@ -104,7 +105,7 @@ class Config:
         key = "STATIONS"
         if key not in conf or conf[key] is None:
             return ConfigError(key, "STATIONS is not set")
-        
+
         for k, v in conf[key].items():
             if not "callsign" in v:
                 return ConfigError(key, "%s->callsign is not set" % k)
@@ -120,4 +121,3 @@ class Config:
     def logdir():
         conf = Config.get()
         return conf["LOG_PATH"] if "LOG_PATH" in conf else "./log/"
-        
