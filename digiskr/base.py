@@ -297,8 +297,10 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
             "]"
         ])
         loading = ["-", "\\", "|", "/"][int(random.uniform(0, 4))]
-        sys.stdout.write("\r %s[%2.2d] %s\r" %
-                         (loading, time.localtime().tm_sec, bar))
+        item_on_queue = DecoderQueue.instance().qsize()
+
+        sys.stdout.write("\r %s[T:%2.2d Q:%02d] %s\r" %
+                         (loading, time.localtime().tm_sec, item_on_queue, bar))
         sys.stdout.flush()
 
     @abstractmethod
