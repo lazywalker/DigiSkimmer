@@ -5,7 +5,24 @@ This can be useful in determining propagation conditions or in adjusting antenna
 
 It is also interesting to see how long it takes to spot 100 different DXCC/countries. (A well placed station with a decent antenna can do this within a week of monitoring, but the best systems can do it within a single day).
 
-# Getting Started using Docker
+This is a console application and it looks just like:
+```log
+2020-12-12 17:59:32,847 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB3.0 DT1.9 F7.075188 BG5USO HL5FAM R-17 : -
+2020-12-12 17:59:32,847 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-2.0 DT0.5 F7.075102 YD1ELG DS1AAK -20 : -
+2020-12-12 17:59:32,847 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-14.0 DT0.5 F7.074700 7C9T JA1FJJ -09 : -
+2020-12-12 17:59:32,847 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-2.0 DT0.4 F7.076949 <...> JA1JAN -10 : -
+2020-12-12 17:59:32,847 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-14.0 DT0.7 F7.074592 CQ BH6ODC OM64 : BH6ODC OM64
+2020-12-12 17:59:32,848 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-13.0 DT0.7 F7.074650 CQ DS2CXN PM37 : DS2CXN PM37
+2020-12-12 17:59:32,848 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-21.0 DT0.5 F7.076006 CQ JH4BTI PM54 : JH4BTI PM54
+2020-12-12 17:59:32,848 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-16.0 DT0.4 F7.074667 HS0ZMB 6K2KQW PM37 : 6K2KQW PM37
+2020-12-12 17:59:32,848 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-22.0 DT-0.4 F7.074313 BI4XYB UN7ECA MO52 : UN7ECA MO52
+2020-12-12 17:59:32,848 INFO  3677478 [QW-1] [czsdr] FT8 T175915 DB-19.0 DT0.5 F7.075615 RW4CCW JA1VVX PM95 : JA1VVX PM95
+ -[T:33 Q:13] FT8:[##........]  FT4:[####......]        WSPR:[#######...]
+      \                  \               |                \
+Time&Queue indicator  FT8 progress   FT4 progress       WSPR progress
+```
+
+# Getting Started using Docker / Podman
 If you have a running docker setup you should quite easy to get started.
 ```bash
 docker run -eTZ=`cat /etc/timezone` -v digiskr:/opt/digiskr --tmpfs=/tmp/digiskr lazywalker/digiskr

@@ -1,9 +1,8 @@
 import importlib.util
-import os
 import logging
 import json
 
-VERSION = '0.20.7'
+VERSION = '0.30.1'
 KIWI_USER = "digiskr_%s" % VERSION
 DECODING_SOFTWARE = "DigiSkimmer %s" % VERSION
 MODES = {'~': 'FT8', '#': 'JT65', '@': 'JT9', '+': 'FT4', '!': 'WSPR'}
