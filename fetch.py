@@ -200,10 +200,10 @@ def main():
                                 exsit_task = True
                                 break
                         if not exsit_task:
-                            options = setup_kiwistation(
-                                _conf["STATIONS"][st], st)
-                            task = new_kiwiworker(
-                                options, band, len(_sr_tasks)+1)
+                            options = setup_kiwistation(_conf["STATIONS"][st], st)
+                            task = new_kiwiworker(options, band, len(_sr_tasks)+1)
+                            logging.info("# wait a second to let pre-tasks have a clean quit")
+                            time.sleep(1)
                             task.start()
                             _sr_tasks.append(task)
             else:  # no tasks available
