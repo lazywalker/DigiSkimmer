@@ -77,7 +77,7 @@ class WsprProfile(WsjtProfile):
         return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
-        cmd = ["wsprd"]
+        cmd = ["wsprd", "-a", "."]
         if self.decoding_depth("wspr") > 1:
             cmd += ["-d"]
         cmd += [file]
