@@ -126,6 +126,8 @@ class Uploader(object):
 
     def getPackets(self, spots):
         encoded = [self.encodeSpot(spot) for spot in spots]
+        # filter out any erroneous encodes
+        encoded = [e for e in encoded if e is not None]
 
         def chunks(l, n):
             """Yield successive n-sized chunks from l."""
@@ -161,17 +163,22 @@ class Uploader(object):
         return [len(s)] + list(s.encode("utf-8"))
 
     def encodeSpot(self, spot):
-        return bytes(
-            self.encodeString(spot["callsign"])
-            # freq in Hz to pskreporter
-            + list(int(spot["freq"]*1e6).to_bytes(4, "big"))
-            + list(int(spot["db"]).to_bytes(1, "big", signed=True))
-            + self.encodeString(spot["mode"])
-            + self.encodeString(spot["locator"])
-            # informationsource. 1 means "automatically extracted
-            + [0x01]
-            + list(spot["timestamp"].to_bytes(4, "big"))
-        )
+        try:
+            return bytes(
+                self.encodeString(spot["callsign"])
+                # freq in Hz to pskreporter
+                + list(int(spot["freq"]*1e6).to_bytes(4, "big"))
+                + list(int(spot["db"]).to_bytes(1, "big", signed=True))
+                + self.encodeString(spot["mode"])
+                + self.encodeString(spot["locator"])
+                # informationsource. 1 means "automatically extracted
+                + [0x01]
+                + list(spot["timestamp"].to_bytes(4, "big"))
+            )
+        except Exception:
+            logging.exception("Error while encoding spot for pskreporter")
+            return None
+        
 
     def getReceiverInformationHeader(self):
         return bytes(
