@@ -279,23 +279,22 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         self._update_wav_header()
 
     def _print_status(self, time_to_wait):
-        if self._profile.getMode() == "FT4":    # ft4 takes second position of status bar
-            pos = 1
-        elif self._profile.getMode() == "WSPR":    # wspr takes third position of status bar
-            pos = 2
-        else:
-            pos = 0
-        tab = "".join(["\t" for _ in range(0, 3*pos)])
+        # position of modes at status bar
+        pos = {"FT8": 0, "FT4": 1, "WSPR": 2, "JT65": 3, "JT9": 4}
+        tab = "  " +"".join(["\t" for _ in range(0, 2*pos[self._profile.getMode()])])
 
+        # progress of modes
         bar = tab + "".join([
             self._profile.getMode(),
             ":[",
             "".join(["#" for _ in range(0, math.floor(
-                (self._profile.getInterval()-time_to_wait)*10/self._profile.getInterval()))]),
+                (self._profile.getInterval()-time_to_wait)*6/self._profile.getInterval()))]),
             "".join(["." for _ in range(0, math.ceil(
-                    time_to_wait*10/self._profile.getInterval()))]),
+                    time_to_wait*6/self._profile.getInterval()))]),
             "]"
         ])
+
+        # print out the status bar
         loading = ["-", "\\", "|", "/"][int(random.uniform(0, 4))]
         item_on_queue = DecoderQueue.instance().qsize()
 

@@ -34,6 +34,10 @@ class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
             return FT4Profile()
         elif mode == "WSPR":
             return WsprProfile()
+        elif mode == "JT65":
+            return JT65Profile()
+        elif mode == "JT9":
+            return JT9Profile()
         else:
             raise Exception("invalid mode!")
 
@@ -85,6 +89,9 @@ class WsprProfile(WsjtProfile):
 
 
 class JT65Profile(WsjtProfile):
+    def getMode(self):
+        return "JT65"
+
     def getInterval(self):
         return 60
 
@@ -96,6 +103,9 @@ class JT65Profile(WsjtProfile):
 
 
 class JT9Profile(WsjtProfile):
+    def getMode(self):
+        return "JT9"
+
     def getInterval(self):
         return 60
 
