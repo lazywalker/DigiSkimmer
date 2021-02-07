@@ -96,7 +96,7 @@ class JT65Profile(WsjtProfile):
         return 60
 
     def getFileTimestampFormat(self):
-        return "%Y%m%d %H%M"
+        return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt65", "-d", str(self.decoding_depth("jt65")), file]
@@ -110,7 +110,7 @@ class JT9Profile(WsjtProfile):
         return 60
 
     def getFileTimestampFormat(self):
-        return "%Y%m%d %H%M"
+        return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
         return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
