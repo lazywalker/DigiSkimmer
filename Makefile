@@ -1,9 +1,9 @@
 APT="mirrors.ustc.edu.cn"
 PLATFORM="linux/amd64,linux/arm64,linux/arm/v7"
 TAG=alpine
-VER=0.32
-# VER=latest
-VER_BASE=wsjtx-2.2.2
+# VER=0.32
+VER=latest
+VER_BASE=wsjtx-2.3.0
 
 
 all: base app

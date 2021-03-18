@@ -13,9 +13,10 @@ RUN apk update && \
     apk add --no-cache \
     git cmake make gcc g++ patch \
     gfortran asciidoc asciidoctor libusb-dev fftw-dev hamlib-dev \
-    qt5-qtserialport-dev qt5-qttools-dev qt5-qtmultimedia-dev
+    qt5-qtserialport-dev qt5-qttools-dev qt5-qtmultimedia-dev \
+    boost-dev
 
-ARG WSJT_DIR=wsjtx-2.2.2
+ARG WSJT_DIR=wsjtx-2.3.0
 ADD "http://physics.princeton.edu/pulsar/k1jt/${WSJT_DIR}.tgz" /tmp/
 # COPY ${WSJT_DIR}.tgz /tmp/
 COPY docker/patch/*.patch /tmp/
