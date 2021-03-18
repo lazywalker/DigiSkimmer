@@ -1,4 +1,5 @@
-FROM alpine:latest as builder
+ARG ALPINE_VER="3.13.2"
+FROM alpine:${ALPINE_VER} as builder
 
 LABEL maintainer="Michael BD7MQB <bd7mqb@qq.com>"
 
@@ -16,6 +17,7 @@ RUN apk update && \
 
 ARG WSJT_DIR=wsjtx-2.2.2
 ADD "http://physics.princeton.edu/pulsar/k1jt/${WSJT_DIR}.tgz" /tmp/
+# COPY ${WSJT_DIR}.tgz /tmp/
 COPY docker/patch/*.patch /tmp/
 RUN cd /tmp && \
     tar xfz ${WSJT_DIR}.tgz && \
@@ -29,7 +31,7 @@ RUN cd /tmp && \
     make && \
     make install
 
-FROM alpine:latest
+FROM alpine:${ALPINE_VER}
 
 ARG APT=
 RUN if [ "${APT}" != "" ] ; then \
