@@ -12,7 +12,7 @@ base:
 	docker build --build-arg APT="${APT}" -t lazywalker/digiskr-base:${VER_BASE} -f docker/Dockerfile.base.${TAG} .
 
 app:
-	docker build -t lazywalker/digiskr -f docker/Dockerfile .
+	docker build --build-arg VER_BASE="${VER_BASE}" -t lazywalker/digiskr -f docker/Dockerfile .
 
 pushall: push
 	docker push lazywalker/digiskr-base:${VER_BASE}
@@ -26,4 +26,4 @@ buildx-base:
 	docker buildx build  --build-arg APT="${APT}" --platform ${PLATFORM} -t lazywalker/digiskr-base:${VER_BASE} -f docker/Dockerfile.base.${TAG} --push .
 
 buildx-app:
-	docker buildx build --platform ${PLATFORM} -t lazywalker/digiskr:${VER} -f docker/Dockerfile --push .
+	docker buildx build --platform ${PLATFORM} --build-arg VER_BASE="${VER_BASE}" -t lazywalker/digiskr:${VER} -f docker/Dockerfile --push .

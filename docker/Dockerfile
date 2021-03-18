@@ -1,5 +1,5 @@
-ARG TAG="latest"
-FROM lazywalker/digiskr-base:${TAG}
+ARG VER_BASE="latest"
+FROM lazywalker/digiskr-base:${VER_BASE}
 
 LABEL maintainer="Michael BD7MQB <bd7mqb@qq.com>"
 
