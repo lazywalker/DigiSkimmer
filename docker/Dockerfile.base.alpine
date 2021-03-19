@@ -1,4 +1,4 @@
-ARG ALPINE_VER="3.13.2"
+ARG ALPINE_VER="3.12"
 FROM alpine:${ALPINE_VER} as builder
 
 LABEL maintainer="Michael BD7MQB <bd7mqb@qq.com>"
