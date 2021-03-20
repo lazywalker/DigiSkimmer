@@ -46,6 +46,8 @@ You are good to go.
 
 FYI, [Here](https://www.raspberrypi.org/blog/docker-comes-to-raspberry-pi/) is a quick setup guide for Raspberry Pi, for short, all you need to do is run `curl -sSL https://get.docker.com | sh`
 
+TIPS: DO NOT use over 8 simultaneous tasks when you using docker on raspberry pi, it may cause memory leak to your kiwi.
+
 # Manual Setup
 If you want to do it manually follow those steps.
 ## 1. Preparation
@@ -63,10 +65,7 @@ sudo ln -s /Applications/wsjtx.app/Contents/MacOS/wsprd /usr/local/bin/wsprd
 ```
 
 ### For Raspberry pi
-```bash
-wget http://physics.princeton.edu/pulsar/k1jt/wsjtx_2.2.2_armhf.deb
-sudo dpkg -i wsjtx_2.2.2_armhf.de
-```
+[follow this instructions](https://github.com/lazywalker/DigiSkimmer/wiki/Manual-Installation-on-RaspberryPi)
 
 ### For Debian
 I only tested debian 11 - bullseye/sid, cause only this version have a ready-to-go wsjtx-2.2.2 package.
