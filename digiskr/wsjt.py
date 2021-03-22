@@ -115,6 +115,18 @@ class JT9Profile(WsjtProfile):
     def decoder_commandline(self, file):
         return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
 
+class Fst4wProfile(WsjtProfile):
+    def getMode(self):
+        return "FST4W"
+
+    def getInterval(self):
+        return 60
+
+    def getFileTimestampFormat(self):
+        return "%y%m%d_%H%M"
+
+    def decoder_commandline(self, file):
+        return ["jt9", "--fst4w", "-p", str(self.interval), "-d", str(self.decoding_depth("fst4w")), file]
 
 class WsjtParser(LineParser):
     modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4"}
