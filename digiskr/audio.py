@@ -14,7 +14,7 @@ class WsjtSoundRecorder(BaseSoundRecorder):
         self._parser = WsjtParser(options.station)
 
         options.dt = self._profile.getInterval()
-        options.hp_cut = 2500.0 if self._profile.getMode() == "WSPR" else 3000.0
+        options.hp_cut = 2500.0 if self._profile.getMode() == "WSPR" else 1500.0 if self._profile.getMode() == "FST4W" else 3000.0
 
         super(WsjtSoundRecorder, self).__init__(options)
 

@@ -38,6 +38,8 @@ class WsjtProfile(AudioDecoderProfile, metaclass=ABCMeta):
             return JT65Profile()
         elif mode == "JT9":
             return JT9Profile()
+        elif mode == "FST4W":
+            return Fst4wProfile()
         else:
             raise Exception("invalid mode!")
 
@@ -53,7 +55,7 @@ class FT8Profile(WsjtProfile):
         return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
-        return ["jt9", "--ft8", "-d", str(self.decoding_depth("ft8")), file]
+        return ["jt9", "--ft8", "-d", str(self.decoding_depth(self.getMode())), file]
 
 
 class FT4Profile(WsjtProfile):
@@ -67,7 +69,7 @@ class FT4Profile(WsjtProfile):
         return "%y%m%d_%H%M%S"
 
     def decoder_commandline(self, file):
-        return ["jt9", "--ft4", "-d", str(self.decoding_depth("ft4")), file]
+        return ["jt9", "--ft4", "-d", str(self.decoding_depth(self.getMode())), file]
 
 
 class WsprProfile(WsjtProfile):
@@ -82,7 +84,7 @@ class WsprProfile(WsjtProfile):
 
     def decoder_commandline(self, file):
         cmd = ["wsprd", "-a", "."]
-        if self.decoding_depth("wspr") > 1:
+        if self.decoding_depth(self.getMode()) > 1:
             cmd += ["-d"]
         cmd += [file]
         return cmd
@@ -99,7 +101,7 @@ class JT65Profile(WsjtProfile):
         return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
-        return ["jt9", "--jt65", "-d", str(self.decoding_depth("jt65")), file]
+        return ["jt9", "--jt65", "-d", str(self.decoding_depth(self.getMode())), file]
 
 
 class JT9Profile(WsjtProfile):
@@ -113,23 +115,33 @@ class JT9Profile(WsjtProfile):
         return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
-        return ["jt9", "--jt9", "-d", str(self.decoding_depth("jt9")), file]
+        return ["jt9", "--jt9", "-d", str(self.decoding_depth(self.getMode())), file]
+
 
 class Fst4wProfile(WsjtProfile):
+    availableIntervals = [120, 300, 900, 1800]
+
     def getMode(self):
         return "FST4W"
 
     def getInterval(self):
-        return 60
+        conf = Config.get()
+        if "WSJTX" in conf:
+            conf = conf["WSJTX"]
+            if "interval" in conf and self.getMode() in conf["interval"]:
+                return conf["interval"][self.getMode()] if conf["interval"][self.getMode()] in self.availableIntervals else self.availableIntervals[0]
+
+        # default when no setting is provided
+        return self.availableIntervals[0]
 
     def getFileTimestampFormat(self):
         return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
-        return ["jt9", "--fst4w", "-p", str(self.interval), "-d", str(self.decoding_depth("fst4w")), file]
+        return ["jt9", "--fst4w", "-p", str(self.getInterval()), "-F", str(100), "-d", str(self.decoding_depth(self.getMode())), file]
 
 class WsjtParser(LineParser):
-    modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4"}
+    modes = {"~": "FT8", "#": "JT65", "@": "JT9", "+": "FT4", "`": "FT4W"}
 
     def parse(self, messages):
         for data in messages:
@@ -197,6 +209,8 @@ class JT9Decoder(Decoder):
         # jt65 sample
         # '2352  -7  0.4 1801 #  R0WAS R2ABM KO85'
         # '0003  -4  0.4 1762 #  CQ R2ABM KO85'
+        # fst4w sample
+        # 0000  13  0.2 1573 `  KA7OEI DN40 17
 
         modes = list(WsjtParser.modes.keys())
         if msg[19] in modes:

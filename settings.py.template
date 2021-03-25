@@ -5,8 +5,11 @@ LOG_SPOTS = False                                    ## log spots to log/spots/{
 
 WSJTX = {
     'decoding_depth_global': 3,                     ## global settings
-    'decoding_depth_modes': {                       ## mode-specific setting: ft8/jt65/jt9/ft4
-        'ft8': 3
+    'decoding_depth_modes': {                       ## mode-specific setting: FT8/JT65/JT9/FT4
+        'FT8': 3
+    },
+    'interval': {
+        'FST4W': 120                                ## available intervals: [120, 300, 900, 1800]
     }
 }
 
