@@ -16,8 +16,7 @@ class Wsprnet(object):
     creationLock = threading.Lock()
     # avoid the two minute boundaries
     interval = 45
-    # modes defined http://wsprnet.org/drupal/node/8500
-    supportedModes = {"WSPR": 2, "FST4W": 5}
+    supportedModes = ["WSPR", "FST4W"]
 
     @staticmethod
     def getSharedInstance(station: str):
