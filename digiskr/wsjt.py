@@ -162,19 +162,16 @@ class WsjtParser(LineParser):
                 logging.info("[%s] %s T%s DB%2.1f DT%2.1f F%2.6f %s : %s %s",
                              self.getStation(),
                              out["mode"],
-                             time.strftime(
-                                 "%H%M%S",  time.localtime(out["timestamp"])),
+                             time.strftime("%H%M%S",  time.localtime(out["timestamp"])),
                              out["db"], out["dt"], out["freq"], out["msg"],
                              out["callsign"] if "callsign" in out else "-",
                              out["locator"] if "locator" in out else "")
                 if "mode" in out:
                     if "callsign" in out and "locator" in out:
-                        PskReporter.getSharedInstance(
-                            self.getStation()).spot(out)
+                        PskReporter.getSharedInstance(self.getStation()).spot(out)
                         # upload beacons to wsprnet as well
                         if out["mode"] in ["WSPR", "FST4W"]:
-                            Wsprnet.getSharedInstance(
-                                self.getStation()).spot(out)
+                            Wsprnet.getSharedInstance(self.getStation()).spot(out)
 
             except ValueError:
                 logging.exception("error while parsing wsjt message")
@@ -232,14 +229,17 @@ class JT9Decoder(Decoder):
             result.update(self.parseBeaconMessage(wsjt_msg))
         else:
             result.update(self.parseQSOMessage(wsjt_msg))
-            
+
         return result
 
     def parseBeaconMessage(self, msg):
         m = WsprDecoder.wspr_splitter_pattern.match(msg)
         if m is None:
             return {}
-        return {"callsign": m.group(1), "locator": m.group(2), "watt": int(m.group(3))}
+        return {
+                "sync_quality": 0.7, "drift": 0, 
+                "callsign": m.group(1), "locator": m.group(2), "watt": int(m.group(3))
+                }
 
     def parseQSOMessage(self, msg):
         if msg.startswith("CQ") or len(msg.split(" ")) == 3:
