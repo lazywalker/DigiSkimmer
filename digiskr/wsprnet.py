@@ -16,7 +16,7 @@ class Wsprnet(object):
     creationLock = threading.Lock()
     # avoid the two minute boundaries
     interval = 45
-    supportedModes = ["WSPR"]
+    supportedModes = ["WSPR", "FST4W"]
 
     @staticmethod
     def getSharedInstance(station: str):
@@ -118,6 +118,7 @@ class Uploader(object):
                 spot["locator"],
                 spot["watt"],
                 spot["drift"]
+                # TODO: add spot["mode"] to identify WSPR and FST4W (http://wsprnet.org/drupal/node/8500)
             ))
 
         self.save(spot_lines, allmet)

@@ -177,8 +177,6 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
 
     def _setup_rx_params(self):
         if self._options.no_api:
-            if self._options.user != 'kiwirecorder.py':
-                self.set_name(self._options.user)
             return
         self.set_name(self._options.user)
         mod = self._options.modulation
@@ -219,8 +217,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
                 self._profile.getFileTimestampFormat(), self._start_ts)
             filename = '%s.wav' % ts
 
-        filename = os.path.join(Config.tmpdir(
-        ), self._options.station, self._profile.getMode(), self._band, filename)
+        filename = os.path.join(Config.tmpdir(), self._options.station, self._profile.getMode(), self._band, filename)
         return filename
 
     def _write_wav_header(self, fp, filesize, samplerate, num_channels):
@@ -249,11 +246,9 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
         def sec_of_day(x): return 3600*x.tm_hour + 60*x.tm_min + x.tm_sec
         dt_reached = self._options.dt != 0 and self._start_ts is not None and sec_of_day(
             now)//self._options.dt != sec_of_day(self._start_ts)//self._options.dt
-        if self._profile.getMode() == "WSPR":
-            time_to_wait = (60 - now.tm_sec) % self._profile.getInterval() + \
-                (60 if now.tm_min % 2 == 0 else 0)  # odd minute
-        else:
-            time_to_wait = (60 - now.tm_sec) % self._profile.getInterval()
+        time_to_wait = (60 - now.tm_sec) % self._profile.getInterval()
+        if self._profile.getInterval() > 60:
+            time_to_wait += ((self._profile.getInterval()/60-1) - (now.tm_min % (self._profile.getInterval()/60))) * 60
 
         # print out progress bar at the buttom of screen
         self._print_status(time_to_wait)
@@ -280,7 +275,7 @@ class BaseSoundRecorder(KiwiSDRStream, metaclass=ABCMeta):
 
     def _print_status(self, time_to_wait):
         # position of modes at status bar
-        pos = {"FT8": 0, "FT4": 1, "WSPR": 2, "JT65": 3, "JT9": 4}
+        pos = {"FT8": 0, "FT4": 1, "WSPR": 2, "JT65": 3, "JT9": 4, "FST4W": 5}
         tab = "  " +"".join(["\t" for _ in range(0, 2*pos[self._profile.getMode()])])
 
         # progress of modes
