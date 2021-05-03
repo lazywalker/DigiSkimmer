@@ -1,6 +1,7 @@
 TMP_PATH = './tmp/digiskr/'                         ## tmp directory to put wave files and etc.
 LOG_PATH = './log/'
 LOG_TO_FILE = False
+LOG_BACKUP_COUNT = 30
 LOG_SPOTS = False                                    ## log spots to log/spots/{wsprnet|pskreport}/{station}, split by date
 
 WSJTX = {

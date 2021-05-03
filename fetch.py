@@ -33,6 +33,8 @@ threading.currentThread().setName("main")
 def setup_logger():
     debug = _conf["DEBUG"] if "DEBUG" in _conf else False
     log_to_file = _conf["LOG_TO_FILE"] if "LOG_TO_FILE" in _conf else False
+    log_backup_count = _conf["LOG_BACKUP_COUNT"] if "LOG_BACKUP_COUNT" in _conf else 30
+
     try:
         # if colorlog installed (pip install colorlog)
         from colorlog import ColoredFormatter
@@ -73,9 +75,8 @@ def setup_logger():
     if log_to_file:
         os.makedirs(Config.logdir(), exist_ok=True)
         filehandler = logging.handlers.TimedRotatingFileHandler(os.path.join(
-            Config.logdir(), "digiskr.log"), when="midnight", interval=1, backupCount=30)
+            Config.logdir(), "digiskr.log"), when="midnight", interval=1, backupCount=log_backup_count)
         filehandler.setLevel(logging.DEBUG)
-        filehandler.suffix = "%Y%m%d"
         filehandler.setFormatter(logging.Formatter(
             "%(asctime)-15s %(levelname)-5s %(process)5d [%(threadName)s] %(message)s"))
         logging.getLogger('').addHandler(filehandler)
