@@ -83,9 +83,24 @@ class WsprProfile(WsjtProfile):
         return "%y%m%d_%H%M"
 
     def decoder_commandline(self, file):
-        cmd = ["wsprd", "-a", "."]
+        # Options of wsprd:
+        # -B disable block demodulation - use single-symbol noncoherent demod
+        # -c write .c2 file at the end of the first pass
+        # -C maximum number of decoder cycles per bit, default 10000
+        # -d deeper search. Slower, a few more decodes
+        # -e x (x is transceiver dial frequency error in Hz)
+        # -f x (x is transceiver dial frequency in MHz)
+        # -H do not use (or update) the hash table
+        # -J use the stack decoder instead of Fano decoder
+        # -m decode wspr-15 .wav file
+        # -o n (0<=n<=5), decoding depth for OSD, default is disabled
+        # -q quick mode - doesn't dig deep for weak signals
+        # -s single pass mode, no subtraction (same as original wsprd)
+        # -w wideband mode - decode signals within +/- 150 Hz of center
+        # -z x (x is fano metric table bias, default is 0.45)
+        cmd = ["wsprd", "-C", "500", "-w"]
         if self.decoding_depth(self.getMode()) > 1:
-            cmd += ["-d"]
+            cmd += ["-o", "4", "-d"]
         cmd += [file]
         return cmd
 
