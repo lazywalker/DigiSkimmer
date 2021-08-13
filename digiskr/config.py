@@ -2,7 +2,7 @@ import importlib.util
 import logging
 import json
 
-VERSION = '0.33.2'
+VERSION = '0.34.1'
 KIWI_USER = "digiskr_%s" % VERSION
 DECODING_SOFTWARE = "DigiSkimmer %s" % VERSION
 MODES = {'~': 'FT8', '#': 'JT65', '@': 'JT9', '+': 'FT4', '!': 'WSPR', '`': 'FST4W'}
@@ -14,7 +14,11 @@ BANDS = {  # Freq in MHz
     'WSPR': {
         '2190': 0.136000, '630': 0.474200, '160': 1.836600, '80': 3.568600, '60': 5.364700, '40': 7.038600, '30': 10.138700,
         '20': 14.095600, '17': 18.104600, '15': 21.094600, '12': 24.924600, '10': 28.124600, '6': 50.293000,
-        '2': 144.489000, '0.7': 432.300000
+        '2': 144.489000, '0.7': 432.300000,
+        # 5.287200 is a 60m frequency used in some countries like UK.
+        # 3.592600 is the old 80m frequency, which should technically not be used anymore, 
+        # but is still used by some people (suggested by Stefan HB9TMC).
+        '81': 3.592600, '61': 5.287200,
     },
     'FST4': {'2190': 0.136000, '630': 0.474200, '160': 1.839000},
     'FST4W': {'2190': 0.136000, '630': 0.474200, '160': 1.836800},

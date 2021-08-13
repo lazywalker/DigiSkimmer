@@ -6,6 +6,7 @@ import time
 import random
 from functools import reduce
 from operator import and_
+import digiskr.config as config
 from digiskr.config import Config
 
 import requests
@@ -126,6 +127,7 @@ class Uploader(object):
 
         postfiles = {"allmept": open(allmet, "r")}
         params = {"call": self.station["callsign"],
+                  "version": "DS_" + config.VERSION,
                   "grid": self.station["grid"]}
 
         max_retries = 3
