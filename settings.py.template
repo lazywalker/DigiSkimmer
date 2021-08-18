@@ -30,15 +30,6 @@ STATIONS = {
         #'antenna' : 'Longwire/Mini-whip'           ## if none set, it'll read the antenna information from the kiwisdr
     },
     
-    'czsdr': {
-        'server_host': 'cz.kiwisdr.go1982.com', 
-        'server_port': 8073,
-        'password': 'passwor0d',
-        'tlimit_password': 'passwor0d',
-        'callsign': 'BD7MQB-2',
-        'grid': 'OM88co',
-    },
-    
     'cdsdr': {                                      ## name of kiwisdr station
         'server_host': 'cdkiwisdr.ddns.net',        ## url of your kiwisdr station
         'server_port': 8073,                        ## port of kiwi
@@ -50,12 +41,12 @@ STATIONS = {
 }
 
 SCHEDULES = {
-    # '*': {'czsdr': [20]},
+    # '*': {'szsdr': [20]},
 
     # simple used:
-    # '21:00-08:00': {'czsdr': [20, 30, 40, 60, 80, 160]},
-    # '08:00-14:30': {'czsdr': [10, 12, 15, 17, 20, 30]},
-    # '14:30-21:00': {'czsdr': [10, 15, 17, 20, 30, 40]},
+    # '21:00-08:00': {'szsdr': [20, 30, 40, 60, 80, 160]},
+    # '08:00-14:30': {'szsdr': [10, 12, 15, 17, 20, 30]},
+    # '14:30-21:00': {'szsdr': [10, 15, 17, 20, 30, 40]},
 
     # band hops example:
     # # four slots all FT8, the last one is rotate between 60-80-160 when localtime is 21:00-08:00
@@ -66,7 +57,7 @@ SCHEDULES = {
     #     'szsdr': ['20|20+', 30, '40~|40+', '60|80|160'],
 
     #     # station no.2, slot1 is rotate between 10-12-15-17-20-30-40 at mode FT8, then 20-30-40 at mode FT4
-    #     'czsdr': ['10|12|15|17|20|30|40|20+|30+|40+'],
+    #     'szsdr': ['10|12|15|17|20|30|40|20+|30+|40+'],
     # }
 
 }
