@@ -104,10 +104,23 @@ class Uploader(object):
 
         allmet = os.path.join(self.tmpdir, "allmet_%d.txt" % (
             int(time.time() + random.uniform(0, 99)) & 0xffff))
+
+        conf = Config.get()
         spot_lines = []
         for spot in spots:
-            # 200804 1916  0.26 -18  0.96   7.040176 JA5NVN         PM74   37  0
-            spot_lines.append("%s  %1.2f %d  %1.2f   %2.6f %s         %s   %d  %d\n" % (
+            # The 11th field is identification of WSPR and FST4W (http://wsprnet.org/drupal/node/8500)            #
+            # the `mode` according to 4 values:
+            # "2"
+            # "15" for the current WSPR modes -2 & -15
+            # "5
+            # "30" for the FST4W modes 300 & 1800
+            #
+            # example:
+            # 200804 1916  0.26 -18  0.96   7.040176 JA5NVN         PM74   37  0  15
+
+            mode = 2 if spot["mode"] == "WSPR" else conf["WSJTX"]["interval"]["FST4W"] / 60 \
+                if "WSJTX" in conf and "interval" in conf["WSJTX"] and "FST4W" in conf["WSJTX"]["interval"] else 2
+            spot_lines.append("%s  %1.2f %d  %1.2f   %2.6f %s         %s   %d  %d  %d\n" % (
                 # wsprnet needs GMT time
                 time.strftime("%y%m%d %H%M", time.gmtime(spot["timestamp"])),
                 spot["sync_quality"],
@@ -118,8 +131,8 @@ class Uploader(object):
                 spot["callsign"],
                 spot["locator"],
                 spot["watt"],
-                spot["drift"]
-                # TODO: add spot["mode"] to identify WSPR and FST4W (http://wsprnet.org/drupal/node/8500)
+                spot["drift"],
+                mode
             ))
 
         self.save(spot_lines, allmet)
