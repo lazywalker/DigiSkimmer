@@ -118,7 +118,8 @@ class Uploader(object):
             # example:
             # 200804 1916  0.26 -18  0.96   7.040176 JA5NVN         PM74   37  0  15
 
-            mode = 2 if spot["mode"] == "WSPR" else conf["WSJTX"]["interval"]["FST4W"]/60
+            mode = 2 if spot["mode"] == "WSPR" else conf["WSJTX"]["interval"]["FST4W"] / 60 \
+                if "WSJTX" in conf and "interval" in conf["WSJTX"] and "FST4W" in conf["WSJTX"]["interval"] else 2
             spot_lines.append("%s  %1.2f %d  %1.2f   %2.6f %s         %s   %d  %d  %d\n" % (
                 # wsprnet needs GMT time
                 time.strftime("%y%m%d %H%M", time.gmtime(spot["timestamp"])),
