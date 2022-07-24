@@ -48,6 +48,28 @@ FYI, [Here](https://www.raspberrypi.org/blog/docker-comes-to-raspberry-pi/) is a
 
 TIPS: DO NOT use over 8 simultaneous tasks when you using docker on raspberry pi, it may cause memory leak to your kiwi.
 
+# Docker Compose
+If you prefer using a Docker Compose file, here's a basic example:
+```
+version: "3.7"
+services:
+  digiskimmer:
+    container_name: digiskimmer
+    image: lazywalker/digiskr
+    restart: unless-stopped
+    environment:
+      # Set your preferred timezone
+      TZ: America/Chicago
+    volumes:
+      - digiskr:/opt/digiskr
+
+networks:
+  digiskr:
+volumes:
+  digiskr:
+    name: digiskr
+```
+
 # Manual Setup
 If you want to do it manually follow those steps.
 ## 1. Preparation
