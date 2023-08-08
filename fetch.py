@@ -133,7 +133,7 @@ def cleanup():
     Wsprnet.stop()
     [w.stop() for w in DecoderQueue.instance().workers]
     [r.stop() for r in _sr_tasks]
-    [t.join() for t in threading.enumerate() if t is not threading.currentThread()]
+    [t.join() for t in threading.enumerate() if t is not threading.current_thread()]
 
 
 def remove_thread(snd, r):
@@ -197,7 +197,7 @@ def main():
                     for band in bands:
                         exsit_task = False
                         for r in _sr_tasks:
-                            if r.getName() == "%s-%s" % (st, band):
+                            if r.name == "%s-%s" % (st, band):
                                 exsit_task = True
                                 break
                         if not exsit_task:
