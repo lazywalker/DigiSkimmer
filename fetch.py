@@ -27,7 +27,7 @@ _conf = Config.get()
 _run_event = threading.Event()
 _run_event.set()
 _sr_tasks = []
-threading.currentThread().setName("main")
+threading.current_thread().name = "main"
 
 
 def setup_logger():
